@@ -68,6 +68,14 @@ dependencies, run `docker compose up -d --build`.
 
 Full A–Z plan: [PROJECT_PLAN.md](PROJECT_PLAN.md)
 
+## Documentation
+
+| File | Contents |
+|---|---|
+| [PROJECT_PLAN.md](PROJECT_PLAN.md) | All stages A–Z: process, technology, testing, checklists |
+| [docs/DEVLOG.md](docs/DEVLOG.md) | Every step taken, how and why, with commands and results |
+| [docs/LEARNING_GUIDE.md](docs/LEARNING_GUIDE.md) | Study guide for every technology used in the project |
+
 1. Week 1 – EPC fundamentals (`docs/`)
 2. Weeks 2–3 – Module A
 3. Week 4 – Module B
