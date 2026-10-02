@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.ipynb_checkpoints/
+
+# large data stays local
+data/raw/**
+data/processed/**
+!data/**/.gitkeep
+chroma_db/

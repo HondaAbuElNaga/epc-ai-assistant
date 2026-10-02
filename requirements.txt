@@ -1,0 +1,21 @@
+# Core
+python-dotenv
+requests
+pandas
+numpy
+tqdm
+
+# LLM
+anthropic
+
+# Module A: document parsing + RAG
+pymupdf
+chromadb
+sentence-transformers
+
+# UI
+streamlit
+
+# Dev
+pytest
+jupyter
