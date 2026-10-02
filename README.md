@@ -48,6 +48,8 @@ copy .env.example .env          # then add your ANTHROPIC_API_KEY
 
 ## Roadmap
 
+Full A–Z plan: [PROJECT_PLAN.md](PROJECT_PLAN.md)
+
 1. Week 1 – EPC fundamentals (`docs/`)
 2. Weeks 2–3 – Module A
 3. Week 4 – Module B
