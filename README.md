@@ -39,12 +39,30 @@ tests/
 
 ## Setup
 
+All work runs inside Docker. Dependencies are managed with [uv](https://docs.astral.sh/uv/)
+(`pyproject.toml` + `uv.lock`). Nothing needs to be installed on the host except Docker.
+
 ```bash
-python -m venv .venv
-.venv\Scripts\activate          # Windows
-pip install -r requirements.txt
-copy .env.example .env          # then add your ANTHROPIC_API_KEY
+copy .env.example .env                 # then add your ANTHROPIC_API_KEY
+docker compose up -d --build           # build image + start the dev container
+docker compose exec dev bash           # open a shell inside the container
 ```
+
+Daily commands (run from the host):
+
+| Task | Command |
+|---|---|
+| Run tests | `docker compose exec dev uv run pytest` |
+| Run tests incl. real Claude call | `docker compose exec dev uv run pytest -m llm` |
+| Add a library | `docker compose exec dev uv add <package>` |
+| Add a dev-only library | `docker compose exec dev uv add --dev <package>` |
+| Remove a library | `docker compose exec dev uv remove <package>` |
+| Lint / format | `docker compose exec dev uv run ruff check .` / `uv run ruff format .` |
+| Run a module | `docker compose exec dev uv run python -m src.<module>` |
+| Stop | `docker compose down` |
+
+`uv add` updates `pyproject.toml` and `uv.lock` (commit both). After pulling changes that touch
+dependencies, run `docker compose up -d --build`.
 
 ## Roadmap
 

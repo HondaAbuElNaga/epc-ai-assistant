@@ -1,0 +1,21 @@
+services:
+  dev:
+    build: .
+    image: epc-ai-assistant:dev
+    container_name: epc-dev
+    working_dir: /app
+    env_file:
+      - path: .env
+        required: false
+    volumes:
+      - .:/app
+      - uv-cache:/root/.cache/uv
+    ports:
+      - "8501:8501"   # Streamlit
+      - "8888:8888"   # Jupyter
+      - "8000:8000"   # FastAPI
+    # Re-sync on start so dependencies added with `uv add` are always installed
+    command: sh -c "uv sync --frozen && sleep infinity"
+
+volumes:
+  uv-cache:

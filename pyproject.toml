@@ -1,0 +1,41 @@
+[project]
+name = "epc-ai-assistant"
+version = "0.1.0"
+description = "AI/ML & GenAI assistant for EPC projects: spec RAG, document extraction, P&ID reading, project controls forecasting, and an AI agent"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "anthropic",
+    "numpy",
+    "pandas",
+    "pydantic",
+    "python-dotenv",
+    "requests",
+    "tqdm",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel",
+    "pytest",
+    "pytest-cov",
+    "ruff",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+    "eval: LLM evaluation tests (slow, cost API credits)",
+    "llm: tests that call the real Claude API",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

@@ -91,8 +91,9 @@ Tick the checkboxes as you go.
 
 | Layer | Technology | Why |
 |---|---|---|
-| Language | Python 3.12 | Most libraries support it (3.14 is too new for some) |
-| Environment | `venv` + `requirements.txt` | Simple, standard |
+| Language | Python 3.12 (inside the container) | Most libraries support it |
+| Environment | **Docker** + Docker Compose: all work runs inside the `dev` container | Same environment on every machine; nothing installed on Windows except Docker |
+| Dependencies | **uv** (`pyproject.toml` + `uv.lock`). Every library is added with `uv add`; no pip, no requirements.txt | Fast, locked, reproducible |
 | LLM | Claude API (`anthropic` SDK): `claude-sonnet-5-5` for reasoning and answers, `claude-haiku-4-5` for cheap bulk extraction | Strong document understanding and tool use |
 | PDF parsing | PyMuPDF (`fitz`); Docling as an optional upgrade for tables | Fast and accurate on text PDFs |
 | Embeddings | `sentence-transformers` (`BAAI/bge-small-en-v1.5` to start) | Free and runs locally |
@@ -108,8 +109,8 @@ Tick the checkboxes as you go.
 | Testing | pytest, pytest-cov | Unit and integration tests |
 | Code quality | ruff (lint and format), mypy (optional) | Clean code |
 | CI | GitHub Actions | Runs tests on every push |
-| Deployment | Docker, Streamlit Community Cloud or Hugging Face Spaces | Free hosting |
-| GPU (Module C) | Google Colab or Kaggle | Free GPU for YOLO training |
+| Deployment | Production Docker image, Streamlit Community Cloud or Hugging Face Spaces | Free hosting |
+| GPU (Module C) | Google Colab or Kaggle (the only work done outside the container; install there with `uv pip install`) | Free GPU for YOLO training |
 
 ---
 
@@ -138,25 +139,32 @@ Assumes 3–4 hours a day.
 **Goal:** a clean, reproducible development environment.
 
 **Process:**
-1. Install Python 3.12 from python.org (keep 3.14 if you want).
-2. Create the environment:
+**Rule: all work runs inside the Docker `dev` container, and every library is managed with uv.**
+
+1. Start Docker Desktop.
+2. Create an API key at console.anthropic.com, then `copy .env.example .env` and paste the key.
+3. Build and start the container:
    ```
    cd D:\claude\EPC\epc-ai-assistant
-   py -3.12 -m venv .venv
-   .venv\Scripts\activate
-   python -m pip install --upgrade pip
-   pip install -r requirements.txt
+   docker compose up -d --build
+   docker compose exec dev bash
    ```
-3. Create an API key at console.anthropic.com, then `copy .env.example .env` and paste the key.
-4. Create `src/common/config.py` (paths and model names) and `src/common/llm.py` (one wrapper around the Claude client that adds retries, logging and token/cost tracking).
-5. Install VS Code extensions: Python, Jupyter, Ruff.
-6. Create a GitHub repository and push.
+4. Project files:
+   - `pyproject.toml`: dependencies (main + `dev` group), pytest and ruff settings
+   - `uv.lock`: exact locked versions (always commit it)
+   - `Dockerfile`: python:3.12-slim + uv; installs dependencies into `/opt/venv` with `uv sync --frozen`
+   - `docker-compose.yml`: the `dev` service mounts the project at `/app`, keeps a uv cache volume, and exposes ports 8501 (Streamlit), 8888 (Jupyter) and 8000 (FastAPI)
+5. Add libraries only with `docker compose exec dev uv add <package>` (`--dev` for test and lint tools). Never use pip.
+6. Create `src/common/config.py` (paths and model names) and `src/common/llm.py` (one wrapper around the Claude client that adds retries, logging and token tracking).
+7. VS Code: install the **Dev Containers** extension to edit and run code directly inside the container.
+8. Create a GitHub repository and push.
 
 **Testing:**
-- `tests/test_setup.py` checks that all packages import, the `.env` key is loaded, and one tiny Claude call returns text.
+- `tests/test_setup.py` checks that Python is 3.12, all packages import, the data folders exist, and (with `-m llm`) that one tiny Claude call returns text.
+- Run: `docker compose exec dev uv run pytest`, then `docker compose exec dev uv run pytest -m llm`.
 
 **Done when:**
-- [ ] `pytest tests/test_setup.py` passes
+- [ ] `docker compose exec dev uv run pytest` passes
 - [ ] The repository is on GitHub with no `.env` committed
 
 ---
@@ -531,7 +539,7 @@ tests/
 ## Stage 11: Deployment
 
 **Process:**
-1. Write a `Dockerfile` (python:3.12-slim, install requirements, copy `src` and `app`, run Streamlit).
+1. Add a `prod` stage to the `Dockerfile`: `uv sync --frozen --no-dev`, copy `src` and `app`, run Streamlit as a non-root user.
 2. Use a small **demo dataset** (about 30 specs, 10 projects, 5 P&IDs) for the hosted version.
 3. Deploy to Hugging Face Spaces or Streamlit Community Cloud, with the API key stored as a platform secret.
 4. Add basic usage limits so strangers can't burn through your API credit (password or request cap).
@@ -559,7 +567,8 @@ tests/
 
 | Risk | Mitigation |
 |---|---|
-| A library doesn't install on Python 3.14 | Use Python 3.12 |
+| A library doesn't support the Python version | The container pins Python 3.12, independent of the Windows Python |
+| Large images (torch pulls CUDA wheels) | Use the PyTorch CPU index in `[tool.uv.sources]` for the container; GPU training stays on Colab |
 | The Ghent data format is complex | Inspect it first; start with the summary data, then the detailed tracking data |
 | Small dataset (133 projects) leads to overfitting | Simple models, leave-one-out cross-validation, always compare against the EVM formula baseline |
 | UFGS PDF formatting varies | Fallback parser; log sections that failed to parse |
@@ -586,7 +595,7 @@ tests/
 ## Master Checklist
 
 **Stage 0: Setup**
-- [ ] Python 3.12 venv, requirements installed
+- [ ] Docker `dev` container builds and runs; dependencies managed with uv (`pyproject.toml` + `uv.lock`)
 - [ ] `.env` with API key; Claude test call works
 - [ ] `src/common/config.py`, `src/common/llm.py`
 - [ ] GitHub repository pushed
