@@ -9,3 +9,6 @@ data/raw/**
 data/processed/**
 !data/**/.gitkeep
 chroma_db/
+
+# personal editor settings
+.vscode/
