@@ -595,10 +595,10 @@ tests/
 ## Master Checklist
 
 **Stage 0: Setup**
-- [ ] Docker `dev` container builds and runs; dependencies managed with uv (`pyproject.toml` + `uv.lock`)
+- [x] Docker `dev` container builds and runs; dependencies managed with uv (`pyproject.toml` + `uv.lock`)
 - [ ] `.env` with API key; Claude test call works
-- [ ] `src/common/config.py`, `src/common/llm.py`
-- [ ] GitHub repository pushed
+- [x] `src/common/config.py`, `src/common/llm.py`
+- [x] GitHub repository pushed
 
 **Stage 1: EPC fundamentals**
 - [ ] `docs/01_epc_fundamentals.md`
