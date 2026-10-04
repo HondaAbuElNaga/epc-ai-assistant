@@ -191,7 +191,7 @@ Assumes 3–4 hours a day.
 
 **Deliverables:**
 - `docs/01_epc_fundamentals.md`
-- `docs/02_glossary.md` (about 100 terms)
+- `docs/02_glossary.md` (about 120 terms)
 - `docs/03_evm_formulas.md` (each formula with a worked numeric example)
 
 **Testing (self-check):**
@@ -601,9 +601,9 @@ tests/
 - [x] GitHub repository pushed
 
 **Stage 1: EPC fundamentals**
-- [ ] `docs/01_epc_fundamentals.md`
-- [ ] `docs/02_glossary.md`
-- [ ] `docs/03_evm_formulas.md`
+- [x] `docs/01_epc_fundamentals.md`
+- [x] `docs/02_glossary.md`
+- [x] `docs/03_evm_formulas.md`
 
 **Stage 2: Data**
 - [ ] UFGS downloaded

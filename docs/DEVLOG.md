@@ -20,6 +20,7 @@ New steps are added at the bottom. Technologies mentioned here are explained in
 | 6 | 2026-10-03 | Stage 0 | Shared config and Claude client |
 | 7 | 2026-10-03 | Stage 0 | Setup tests and code quality checks |
 | 8 | 2026-10-03 | Docs | Development log, learning guide and project rules |
+| 9 | 2026-10-05 | Stage 1 | EPC domain fundamentals study notes |
 
 ---
 
@@ -259,6 +260,45 @@ linting vs. formatting.
 **Why:** the project should explain itself: what was built, why, and how, plus a study guide
 for every technology. `CLAUDE.md` makes these rules permanent for every future step (Docker + uv
 only, and log every step here).
+
+---
+
+## Step 9: EPC domain fundamentals study notes (Stage 1)
+
+**What:** wrote the Stage 1 study material: a stage guide, the EPC fundamentals notes, a
+glossary and the EVM formulas with worked examples.
+
+**Why:** an AI engineer in EPC must understand the business: which documents exist, who uses
+them, how cost and schedule are controlled, and where projects go wrong. Every later module
+solves one of the pain points described here.
+
+**Files:**
+| File | Contents |
+|---|---|
+| `docs/stages/stage_01_epc_fundamentals.md` | 5-day study plan, how to study, resources, done criteria |
+| `docs/01_epc_fundamentals.md` | 14 sections: EPC, delivery models, contracts, lifecycle, engineering documents, specs (MasterFormat, UFGS, SD codes), procurement, construction, document control, project controls, risk, the PMI paper, AI opportunities, self-check questions |
+| `docs/02_glossary.md` | About 120 terms A–Z, tagged by area (GEN/ENG/PRO/CON/DOC/PC/QA) |
+| `docs/03_evm_formulas.md` | All EVM formulas, a worked example, earned schedule, rules of credit, interpretation, common mistakes, exercises with answers |
+
+**How:** the EVM example numbers were computed and checked inside the container before writing:
+```bash
+docker compose up -d
+docker compose exec -T dev uv run python - < check.py   # script shown in 03_evm_formulas.md §9
+```
+Results: CPI 0.8261, SPI 0.7600, EAC 1,210,526, TCPI 1.1481, ES 4.2, SPI(t) 0.84,
+IEAC(t) 11.90 months.
+
+**Verify:** every number in `03_evm_formulas.md` matches the Python output; all links between
+the docs work.
+
+**Problems & fixes:**
+- The PMI paper's full text is members-only (HTTP 403). Section 12 states this clearly and
+  summarizes from the abstract only.
+- The first `docker compose exec` failed with `service "dev" is not running` (the container had
+  stopped). Fixed with `docker compose up -d`.
+
+**Learn:** do the 5-day plan in the stage guide; solve the exercises in `03_evm_formulas.md`;
+answer the self-check questions in `01_epc_fundamentals.md` §14.
 
 ---
 

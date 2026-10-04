@@ -249,8 +249,8 @@ time.sleep(1)   # be polite to the server
 engineering, procurement, construction, commissioning), documents (P&IDs, specs, datasheets,
 RFIs, NCRs, purchase orders), document control (revisions, transmittals), MasterFormat divisions.
 
-**Where:** this explains *why* every module exists. Full notes go in
-`docs/01_epc_fundamentals.md` (Stage 1).
+**Where:** this explains *why* every module exists. Full notes: [01_epc_fundamentals.md](01_epc_fundamentals.md),
+terms: [02_glossary.md](02_glossary.md), study plan: [stages/stage_01_epc_fundamentals.md](stages/stage_01_epc_fundamentals.md).
 
 **Study:** the PMI paper; PMI's PMBOK chapters on cost and procurement;
 https://www.wbdg.org (Whole Building Design Guide).
@@ -279,7 +279,8 @@ actual cost.
 **Example:** BAC = 1,000,000; EV = 400,000; AC = 500,000 → CPI = 0.80 → EAC = 1,250,000.
 The forecast overrun is 250,000.
 
-**Where:** Module D (Stage 5).
+**Where:** Module D (Stage 5). Full formulas, worked examples, earned schedule and exercises:
+[03_evm_formulas.md](03_evm_formulas.md).
 
 **Study:** PMI *Practice Standard for Earned Value Management*;
 Mario Vanhoucke's EVM material at https://www.projectmanagement.ugent.be
