@@ -19,7 +19,7 @@ For each one:
 
 | Before stage | Study these sections |
 |---|---|
-| Stage 0 (setup) | 1.1 Python · 1.2 Git & GitHub · 1.3 Docker · 1.4 Docker Compose · 1.5 uv · 8.1 pytest · 8.4 ruff |
+| Stage 0 (setup) | 8.7 Spec-driven development · 1.1 Python · 1.2 Git & GitHub · 1.3 Docker · 1.4 Docker Compose · 1.5 uv · 8.1 pytest · 8.4 ruff |
 | Stage 1 (EPC) | 2.1 EPC basics · 2.2 Earned Value Management |
 | Stage 2 (data) | 1.6 pandas & numpy · 1.7 Jupyter · 1.8 HTTP & requests · 6.1 Data validation |
 | Stage 3 (RAG) | Part 3 (all of 3.1 → 3.12) |
@@ -911,6 +911,31 @@ jobs:
 ```
 
 **Study:** https://docs.github.com/en/actions · https://docs.astral.sh/uv/guides/integration/github/
+
+---
+
+## 8.7 Spec-driven development (SDD)
+
+**What:** a way of working where you write a **specification first** (what to build, why, and
+how you'll know it's done), then implement against it. It works especially well with AI coding
+assistants, because the spec gives them precise, reviewable instructions.
+
+**Key concepts:**
+| Artifact | Answers |
+|---|---|
+| `product/mission.md` | Why and for whom? |
+| `product/tech-stack.md` | With which tools (and only those)? |
+| `product/roadmap.md` | What, in which order, and what is the status? |
+| `specs/<date>-<feature>/spec.md` | Requirements and **acceptance criteria** for one feature |
+| `specs/<date>-<feature>/tasks.md` | Small ordered steps, tests first |
+
+**Flow:** roadmap item → spec → review → tasks → implement → verify against the acceptance
+criteria → tick the roadmap.
+
+**Where:** `product/`, `specs/`, and the rules in `CLAUDE.md`.
+
+**Study:** GitHub Spec Kit: https://github.com/github/spec-kit ·
+Agent OS (mission/tech-stack/roadmap pattern): https://buildermethods.com/agent-os
 
 ---
 

@@ -66,7 +66,7 @@ dependencies, run `docker compose up -d --build`.
 
 ## Roadmap
 
-Full A–Z plan: [PROJECT_PLAN.md](PROJECT_PLAN.md)
+Current status and order: [product/roadmap.md](product/roadmap.md) · full A–Z detail: [PROJECT_PLAN.md](PROJECT_PLAN.md)
 
 1. Week 1 – EPC fundamentals (`docs/`)
 2. Weeks 2–3 – Module A
@@ -80,6 +80,10 @@ Full A–Z plan: [PROJECT_PLAN.md](PROJECT_PLAN.md)
 
 | File | Contents |
 |---|---|
+| [product/mission.md](product/mission.md) | **SDD:** why the project exists, users, problems, success criteria |
+| [product/tech-stack.md](product/tech-stack.md) | **SDD:** approved technologies and conventions |
+| [product/roadmap.md](product/roadmap.md) | **SDD:** phased features, status, current position |
+| [specs/](specs/README.md) | **SDD:** one spec per feature, written before coding |
 | [PROJECT_PLAN.md](PROJECT_PLAN.md) | All stages A–Z: process, technology, testing, checklists |
 | [docs/DEVLOG.md](docs/DEVLOG.md) | Every step taken, how and why, with commands and results |
 | [docs/LEARNING_GUIDE.md](docs/LEARNING_GUIDE.md) | Study guide for every technology used in the project |

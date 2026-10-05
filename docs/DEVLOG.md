@@ -21,6 +21,7 @@ New steps are added at the bottom. Technologies mentioned here are explained in
 | 7 | 2026-10-03 | Stage 0 | Setup tests and code quality checks |
 | 8 | 2026-10-03 | Docs | Development log, learning guide and project rules |
 | 9 | 2026-10-05 | Stage 1 | EPC domain fundamentals study notes |
+| 10 | 2026-10-05 | Process | Spec-driven development: mission, tech stack, roadmap, specs |
 
 ---
 
@@ -299,6 +300,36 @@ the docs work.
 
 **Learn:** do the 5-day plan in the stage guide; solve the exercises in `03_evm_formulas.md`;
 answer the self-check questions in `01_epc_fundamentals.md` §14.
+
+---
+
+## Step 10: Spec-driven development (SDD) setup
+
+**What:** added three product files (`product/mission.md`, `product/tech-stack.md`,
+`product/roadmap.md`) and a feature-spec workflow (`specs/README.md`), built from the README and
+PROJECT_PLAN.
+
+**Why:** PROJECT_PLAN is long (660+ lines). SDD gives short, always-current answers to:
+*why are we building this* (mission), *with what* (tech stack), *what's next* (roadmap). It also
+forces a written spec with acceptance criteria before any code, so features stay small,
+testable and documented.
+
+**Files:**
+| File | Contents |
+|---|---|
+| `product/mission.md` | Pitch, users (6 personas), problems → solutions, differentiators, features, non-goals, success criteria |
+| `product/tech-stack.md` | Every technology with version, status (in use / planned stage), reason; data sources and licenses; conventions |
+| `product/roadmap.md` | 10 phases (0–9) with goals, done criteria, features with effort sizes and status; current position; timeline |
+| `specs/README.md` | SDD workflow + `spec.md` and `tasks.md` templates |
+| `CLAUDE.md` | New SDD rules: spec before code, only approved tech, tick the roadmap |
+
+**Decision:** the roadmap builds **Module D before Module B**, so the minimum portfolio
+(A + D) is ready around week 5 instead of week 6.
+
+**Verify:** all links resolve; the roadmap status matches the DEVLOG (Phase 0 done except the API
+key, Phase 1 material written).
+
+**Learn:** LEARNING_GUIDE section 8.7 (Spec-driven development).
 
 ---
 

@@ -4,6 +4,10 @@ This is the master plan for the whole project. It covers every stage, the proces
 stage, the technology, the data, how each part is tested, and what "done" means.
 Tick the checkboxes as you go.
 
+> **SDD:** the short source of truth is in `product/` ([mission](product/mission.md),
+> [tech stack](product/tech-stack.md), [roadmap](product/roadmap.md)). The roadmap sets the
+> current build order (Module D before Module B). Each feature gets a spec in `specs/` before coding.
+
 ---
 
 ## Table of Contents

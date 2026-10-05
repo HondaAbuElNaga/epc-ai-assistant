@@ -1,5 +1,13 @@
 # Project rules: EPC Project Intelligence Assistant
 
+## Spec-driven development (SDD)
+- Source of truth: `product/mission.md` (why, for whom), `product/tech-stack.md` (approved tools),
+  `product/roadmap.md` (order and status). `PROJECT_PLAN.md` is the detailed reference.
+- Before coding any roadmap feature: write `specs/<YYYY-MM-DD>-<feature>/spec.md` and `tasks.md`
+  (templates in `specs/README.md`) and get them approved.
+- Only use technologies listed in `product/tech-stack.md`; update it first if a new one is needed.
+- After a feature: tick it in `product/roadmap.md` and update "Current position".
+
 ## Environment
 - All work runs inside the Docker `dev` container: `docker compose exec dev <cmd>`.
 - Every Python library is managed with **uv** (`uv add`, `uv add --dev`, `uv remove`). Never pip,
