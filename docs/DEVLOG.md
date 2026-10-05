@@ -323,6 +323,11 @@ testable and documented.
 | `specs/README.md` | SDD workflow + `spec.md` and `tasks.md` templates |
 | `CLAUDE.md` | New SDD rules: spec before code, only approved tech, tick the roadmap |
 
+**Decision (manual SDD):** GitHub Spec Kit skills had been added to `.claude/skills/`, but
+without the `.specify/` folder they need, so they couldn't run. The choice was a simple manual SDD
+workflow (`product/` + `specs/<date>-<feature>/spec.md` + `tasks.md`), and the Spec Kit skills
+were removed.
+
 **Decision:** the roadmap builds **Module D before Module B**, so the minimum portfolio
 (A + D) is ready around week 5 instead of week 6.
 
