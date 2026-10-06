@@ -24,6 +24,12 @@
    approach changes.
 4. Each stage gets a detailed guide in `docs/stages/` when the stage starts.
 
+## LLM usage & data security
+- Strategy: build with Claude on **public data only**, then move to local models (Stages 13–14).
+- All LLM calls go through `src/common/llm.py`; no module imports a provider SDK directly.
+- Module code uses model tiers (`main` / `fast`), never vendor model IDs.
+- Confidential data must never be sent to an external provider (data classification guard).
+
 ## Code
 - Python 3.12, ruff (line length 100), tests in `tests/` with pytest.
 - Mock the LLM in unit tests; real API tests use the `llm` marker, evaluations use `eval`.

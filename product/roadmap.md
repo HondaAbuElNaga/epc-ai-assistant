@@ -7,8 +7,12 @@
 > Effort: **XS** < 1 day · **S** 1–2 days · **M** 3–4 days · **L** ~1 week · **XL** 2+ weeks
 > Status: `[x]` done · `[~]` in progress · `[ ]` not started
 
-**Current position:** Phase 0 almost done (API key pending) · Phase 1 material written, study in
-progress · **next: Phase 2 (data)**.
+**Model strategy:** build with **Claude on public data** (Phases 0–9), then move to **local
+models** (Phase 10) and harden for **confidential data** (Phase 11).
+
+**Current position:** Phase 0 almost done (API key pending; LLM interface spec awaiting
+approval) · Phase 1 material written, study in progress · **next: LLM interface, then Phase 2
+(data)**.
 
 ---
 
@@ -25,6 +29,7 @@ progress · **next: Phase 2 (data)**.
 - [x] Documentation system: DEVLOG, LEARNING_GUIDE, CLAUDE.md `S`
 - [x] SDD product docs: mission, tech stack, roadmap `XS`
 - [ ] `.env` with API key; real Claude test call passes `XS`
+- [ ] Provider-agnostic LLM interface + data classification guard ([spec](../specs/2026-10-06-llm-provider-interface/spec.md)) `S`
 
 ## Phase 1: Domain Knowledge (Stage 1)
 
@@ -119,6 +124,30 @@ progress · **next: Phase 2 (data)**.
 - [ ] Production Docker image + hosted demo with usage limits `M`
 - [ ] Final README with results, demo video, LinkedIn post, interview notes `M`
 
+## Phase 10: Local Models (Stage 13)
+
+**Goal:** every LLM task runs on local open-weight models, with measured accuracy vs. Claude.
+**Done when:** each module passes its local gate or has a documented reason + human review.
+
+- [ ] Ollama service with GPU in Docker (RTX 4060) `S`
+- [ ] `ollama` provider adapter + schema-constrained JSON `S`
+- [ ] Claude vs. local comparison on all golden sets (quality, latency, VRAM) `M`
+- [ ] Per-module switch decisions (`docs/eval_results/local_vs_claude.md`) `S`
+- [ ] Grounding check with HHEM-2.1-Open `S`
+
+## Phase 11: Security Hardening for Confidential Data (Stage 14)
+
+**Goal:** prove with tests that the system can safely process confidential documents.
+**Done when:** all 10 security layers implemented and tested; threat model written.
+
+- [ ] Network isolation (`internal: true`) + offline env + egress test `S`
+- [ ] Model supply chain: `MODELS.lock` checksums `XS`
+- [ ] Permission-aware retrieval + "zero chunks without access" test `M`
+- [ ] Authentication + audit log `M`
+- [ ] Encryption at rest (volumes) `S`
+- [ ] Prompt-injection tests `S`
+- [ ] Threat model + security README `S`
+
 ---
 
 ## Timeline (3–4 hours a day)
@@ -133,7 +162,9 @@ progress · **next: Phase 2 (data)**.
 | 7–8 | 7 (Module C) |
 | 9 | 8 (agent) |
 | 10 | 9 (product) |
-| 11–12 | Buffer |
+| 11–12 | 10 (local models) |
+| 13 | 11 (security) |
+| 14 | Buffer |
 
 > Order change vs. PROJECT_PLAN: Module D comes **before** Module B so the minimum portfolio
 > (A + D) is reached sooner.

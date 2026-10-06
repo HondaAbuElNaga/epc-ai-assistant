@@ -15,7 +15,10 @@ using AI/ML and Generative AI built and evaluated on **real public data**.
 1. **Career goal:** a portfolio project that proves every skill in an AI/ML and GenAI engineer job
    in EPC: LLM apps, RAG, AI agents, intelligent document processing, drawing extraction, and
    project-controls automation.
-2. **Business problem:** on lump-sum EPC projects, every hour lost searching documents and every
+2. **Future use on confidential data:** the same system must later run on sensitive company
+   documents that are **not allowed to leave the company**. So it is built to move from Claude
+   (public data) to **local models** with security controls, without rewriting the modules.
+3. **Business problem:** on lump-sum EPC projects, every hour lost searching documents and every
    late overrun warning comes straight out of the contractor's profit (PMI, *Delivering to Cost
    in an EPC World*).
 
@@ -51,6 +54,9 @@ using AI/ML and Generative AI built and evaluated on **real public data**.
   (Python computes, the LLM explains); a number guard on generated reports.
 - **Domain-grounded:** built on documented EPC knowledge (`docs/01–03`), not generic AI.
 - **Reproducible:** runs fully in Docker with locked dependencies (uv).
+- **Local-first ready:** one provider-agnostic LLM interface (Claude → Ollama → vLLM), a data
+  classification guard, and tested security layers (network isolation, permission-aware
+  retrieval, audit), ready for confidential data on company infrastructure.
 
 ## Key features
 
@@ -65,11 +71,18 @@ using AI/ML and Generative AI built and evaluated on **real public data**.
 - Multi-tool AI agent (Module E)
 - Streamlit UI, FastAPI, hosted demo
 
+**Enterprise / confidential-data track**
+- Local models on the RTX 4060 (Ollama), evaluated against Claude on the same golden sets
+- Security hardening: offline mode, network isolation, model checksums, permission-aware
+  retrieval, authentication, encryption, audit log, prompt-injection defence
+
 ## Non-goals
 
 - Not a replacement for engineering judgment or approval; it assists, it doesn't decide.
 - Not a full EDMS, scheduling tool or ERP.
-- No real client or confidential data.
+- No real client or confidential data **during development**: public data only. Confidential
+  data is only ever processed by local models inside the company network.
+- Never send confidential data to an external API.
 - No training of large models from scratch; we use pretrained models, fine-tuning only for P&ID
   detection.
 
@@ -82,5 +95,7 @@ using AI/ML and Generative AI built and evaluated on **real public data**.
 | Module C | Reported mAP@0.5 and equipment-list F1 on real drawings |
 | Module D | ML forecast compared with the EVM formula at 20/40/60% complete · 0 unverified numbers in reports |
 | Module E | Task success ≥ 80% on 25 scenarios |
+| Local models | Each module passes its local gate (Stage 13) or has a documented reason and human review |
+| Security | All 10 security layers implemented with passing tests (Stage 14) |
 | Engineering | Tests in CI, coverage ≥ 70%, Docker-only, every step documented |
 | Portfolio | Hosted demo, README with results, demo video |

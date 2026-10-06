@@ -29,9 +29,11 @@ Tick the checkboxes as you go.
 14. [Stage 10: Testing Strategy (All Stages)](#stage-10-testing-strategy-all-stages)
 15. [Stage 11: Deployment](#stage-11-deployment)
 16. [Stage 12: Documentation and Portfolio](#stage-12-documentation-and-portfolio)
-17. [Risks and Mitigations](#risks-and-mitigations)
-18. [Job Description Mapping](#job-description-mapping)
-19. [Master Checklist](#master-checklist)
+17. [Stage 13: Local Models (Claude → Local)](#stage-13-local-models-claude--local)
+18. [Stage 14: Security Hardening for Confidential Data](#stage-14-security-hardening-for-confidential-data)
+19. [Risks and Mitigations](#risks-and-mitigations)
+20. [Job Description Mapping](#job-description-mapping)
+21. [Master Checklist](#master-checklist)
 
 ---
 
@@ -46,6 +48,16 @@ Tick the checkboxes as you go.
 | Old drawings exist only as images or PDFs | **Module C:** a P&ID reader that produces an equipment list and a connection graph |
 | Project controls reporting is manual and late | **Module D:** earned value calculation, overrun prediction, and automatic monthly reports |
 | Information is scattered across systems | **Module E:** an AI agent that uses all of the modules as tools |
+
+**Model strategy: start with Claude, then move to local.**
+1. Build and evaluate every module with Claude on **public data only** (UFGS, Ghent…).
+2. All LLM calls go through **one provider-agnostic interface** (`src/common/llm.py`), so the
+   backend can be swapped (Claude → Ollama on the RTX 4060 → vLLM on a company server) without
+   touching module code.
+3. Re-run the **same golden sets** on local models and switch module by module only when the
+   accuracy gates pass (Stage 13).
+4. Add the **security layers** needed for confidential company documents as tested features
+   (Stage 14).
 
 **Success criteria for the whole project:**
 - Each module runs end to end on real data.
@@ -132,7 +144,9 @@ Assumes 3–4 hours a day.
 | 8 | Stage 7 | Synthetic EPC documents (done in parallel) |
 | 9 | Stage 8 (Module E) | Agent with evaluation scenarios |
 | 10 | Stage 9 + 11 + 12 | UI, deployment, README, demo video |
-| 11–12 | Buffer | Fixes, improvements, interview preparation |
+| 11–12 | Stage 13 | Local models: Ollama on RTX 4060, Claude vs. local evaluation, switch per module |
+| 13 | Stage 14 | Security hardening: offline, network isolation, permission-aware retrieval, audit |
+| 14 | Buffer | Fixes, improvements, interview preparation |
 
 **Fast track (5–6 weeks):** Stages 0–3, then Stage 5, then a light Stage 9.
 
@@ -567,6 +581,93 @@ tests/
 
 ---
 
+## Stage 13: Local Models (Claude → Local)
+
+**Goal:** run every LLM task on local open-weight models with **measured** accuracy, so the system
+can later process confidential documents that must never leave the company.
+
+**Why:** company documents may be confidential. Sending them to any external API is not allowed.
+The project is built with Claude on public data first (fast, high quality), then moved to local
+models using the same tests.
+
+### Process
+
+**13.1 Provider-agnostic LLM interface** (built early, in Phase 0, see `specs/`)
+- `src/common/llm.py` exposes one API: `complete(...)` and `complete_json(..., schema)`.
+- Backends: `anthropic` (Claude), `ollama` (local dev), `vllm` (company server, OpenAI-compatible
+  API), `fake` (tests).
+- The backend is selected by `LLM_PROVIDER` in `.env`. Module code never imports a provider SDK.
+- **Data classification guard:** `DATA_CLASSIFICATION=public|confidential`. If confidential, any
+  external provider raises an error before sending anything.
+
+**13.2 Local serving on the RTX 4060 (8 GB VRAM)**
+- Add an `ollama` service to `docker-compose.yml` with NVIDIA GPU access (Docker Desktop + WSL2).
+- Models (4-bit Q4_K_M): **Qwen3.5-9B** (main), Llama 3.1 8B / Mistral 7B (alternatives).
+  Optional: a MoE model (e.g. Qwen 3.6 35B-A3B) partly offloaded to system RAM.
+- Embeddings, reranker and HHEM run on the CPU to leave the GPU for the LLM.
+- Structured output with schema-constrained decoding (Ollama `format` JSON schema; vLLM xgrammar
+  on the server).
+
+**13.3 Claude vs. local evaluation**
+- Run every golden set (Module A RAG, B extraction, D report number guard, E agent tasks) with
+  Claude and each local candidate.
+- Record quality, latency, tokens/s and VRAM in `docs/eval_results/local_vs_claude.md`.
+
+**13.4 Switch per module with acceptance gates**
+| Module | Gate to switch to local |
+|---|---|
+| A: RAG | Recall@5 unchanged (same retriever); correctness and citation accuracy within 3 points of Claude; refusal ≥ 0.80 |
+| B: extraction | F1 ≥ 0.85; 100% schema-valid output |
+| D: report | 0 number-guard failures; all sections present |
+| E: agent | Task success ≥ 70% on 8 GB hardware (≥ 80% on a server model); otherwise human review |
+
+### Testing
+- Unit: each provider adapter against the same contract tests; `fake` provider in CI.
+- Integration (`-m local`): real Ollama call returns schema-valid JSON.
+- Guard test: `DATA_CLASSIFICATION=confidential` + `LLM_PROVIDER=anthropic` raises **before** any
+  network call.
+
+**Done when:**
+- [ ] All modules run with `LLM_PROVIDER=ollama`
+- [ ] `local_vs_claude.md` comparison published
+- [ ] Each module marked local-ready or not, with the reason
+
+---
+
+## Stage 14: Security Hardening for Confidential Data
+
+**Goal:** prove, with tests, that the system can process confidential documents safely inside a
+company network.
+
+**Principle:** security comes from the whole system, not the model. A local model only removes
+one risk (data leaving to an API).
+
+### Security layers
+
+| # | Layer | Implementation | Test that proves it |
+|---|---|---|---|
+| 1 | No external data flow | Only local providers when `DATA_CLASSIFICATION=confidential` | Guard test (Stage 13) |
+| 2 | Network isolation | Docker network `internal: true` for the LLM, vector DB and app services | `curl https://example.com` from inside the container **fails** |
+| 3 | Offline / no telemetry | `HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1`, `ANONYMIZED_TELEMETRY=False` (Chroma), Streamlit `gatherUsageStats=false`, Ollama bound to the internal network | Network capture shows zero outbound connections during a full run |
+| 4 | Model supply chain | Official sources, GGUF/safetensors only (no pickle), SHA-256 checksums in `models/MODELS.lock`, pinned versions, licenses recorded | Checksum verification test before loading |
+| 5 | Permission-aware retrieval | Every chunk stores `access_groups`; search filters by the user's groups **before** the LLM sees anything | A user without access gets **zero chunks** from restricted documents |
+| 6 | Authentication | Login in front of the app; services not exposed outside the internal network | Unauthenticated request is rejected |
+| 7 | Encryption | Encrypted volumes for documents and the vector DB; TLS between services on a server | Configuration check |
+| 8 | Prompt-injection defence | Document text treated as data; read-only agent tools; no internet tools; output validation | Injected document ("ignore rules…") doesn't change tool use or leak other documents |
+| 9 | Audit logging | Who asked, what was retrieved, which model, which checks passed; logs protected with retention | Every answer is traceable to user, documents and model version |
+| 10 | Data minimization | Optional redaction of names and personal data before indexing | Redaction unit tests |
+
+### Testing
+- `tests/security/` suite (marker `security`), run in CI.
+- A documented threat model: `docs/security/threat_model.md`.
+
+**Done when:**
+- [ ] All 10 layers implemented and tested
+- [ ] Threat model and security README written
+- [ ] Demo: the same question answered for two users with different access rights
+
+---
+
 ## Risks and Mitigations
 
 | Risk | Mitigation |
@@ -580,6 +681,9 @@ tests/
 | LLM cost grows | Use Haiku for bulk work, cache every LLM response, use small evaluation subsets during development |
 | LLM hallucination | Citations, number guard, refusal tests |
 | Scope creep / burnout | Finish A + D first (minimum viable portfolio), then add the rest |
+| Local 8 GB models are weaker than Claude (especially the agent) | Same golden sets and gates; switch per module; keep human review where a gate fails; bigger model on a company server |
+| Confidential data sent to an external API by mistake | Provider-agnostic interface + data classification guard that fails before any network call; network isolation |
+| Users see documents they aren't allowed to read | Permission-aware retrieval enforced in code, with tests (never via the prompt) |
 
 ---
 
@@ -593,6 +697,7 @@ tests/
 | Extract, analyze and classify information from documents, drawings, specs and records | Modules B and C |
 | Automate project controls, reporting and document management | Module D, plus classification and routing in Module B |
 | Identify opportunities where AI improves productivity | Stage 1 analysis plus the README "business impact" section |
+| (Enterprise readiness) Secure AI on confidential data | Stages 13–14: local models, isolation, permission-aware retrieval, audit |
 
 ---
 
@@ -671,3 +776,17 @@ tests/
 - [ ] Demo video
 - [ ] LinkedIn or blog post
 - [ ] Interview notes
+
+**Stage 13: Local models**
+- [ ] Provider-agnostic LLM interface + classification guard (built in Phase 0)
+- [ ] Ollama service with GPU in Docker
+- [ ] Claude vs. local comparison on all golden sets
+- [ ] Per-module switch decisions
+
+**Stage 14: Security hardening**
+- [ ] Network isolation + offline mode + egress test
+- [ ] Model checksums (MODELS.lock)
+- [ ] Permission-aware retrieval + zero-chunk test
+- [ ] Authentication, encryption, audit log
+- [ ] Prompt-injection tests
+- [ ] Threat model document

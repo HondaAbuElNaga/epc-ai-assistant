@@ -22,6 +22,7 @@ New steps are added at the bottom. Technologies mentioned here are explained in
 | 8 | 2026-10-03 | Docs | Development log, learning guide and project rules |
 | 9 | 2026-10-05 | Stage 1 | EPC domain fundamentals study notes |
 | 10 | 2026-10-05 | Process | Spec-driven development: mission, tech stack, roadmap, specs |
+| 11 | 2026-10-06 | Strategy | Claude first, then local models + security for confidential data |
 
 ---
 
@@ -335,6 +336,39 @@ were removed.
 key, Phase 1 material written).
 
 **Learn:** LEARNING_GUIDE section 8.7 (Spec-driven development).
+
+---
+
+## Step 11: Strategy: Claude first, then local models and security
+
+**What:** adopted the strategy *build with Claude on public data → move to local models → harden
+for confidential data*. Updated the product docs and plan, and wrote the first spec (the
+provider-agnostic LLM interface).
+
+**Why:** the system will later be used on confidential company documents that must **never leave
+the company**. Research (Oct 2026) showed:
+- Only the LLM depends on an external API; embeddings, reranker, parsing, YOLO and OCR are
+  already local.
+- On an RTX 4060 (8 GB VRAM), 7–9B models at 4-bit (e.g. Qwen3.5-9B) fit fully in the GPU: close to
+  Claude for classification and extraction, slightly lower for RAG, clearly weaker for multi-step
+  agents. Larger open models on company servers close most of the gap.
+- Security is a property of the whole system (isolation, access control, audit), not of the model.
+
+**Files:**
+| File | Change |
+|---|---|
+| `PROJECT_PLAN.md` | Model strategy in the overview; new **Stage 13** (local models, gates per module) and **Stage 14** (10 security layers, each with a test); timeline, risks, job mapping, checklist |
+| `product/mission.md` | Confidential-data goal, local-first differentiator, enterprise track, non-goals, success criteria |
+| `product/tech-stack.md` | Provider-agnostic interface, data guard, Ollama/vLLM, local models, constrained decoding, HHEM, security tooling |
+| `product/roadmap.md` | Phase 0 item (LLM interface), new **Phase 10** (local models) and **Phase 11** (security), timeline |
+| `specs/2026-10-06-llm-provider-interface/` | spec.md + tasks.md (status: draft, awaiting approval) |
+| `docs/LEARNING_GUIDE.md` | New **Part 10** (13 sections): adapter pattern, data guard, quantization/VRAM, Ollama, vLLM, constrained decoding, HHEM, evaluation gates, network isolation, supply chain, permission-aware retrieval, prompt injection, audit/encryption/auth |
+| `CLAUDE.md` | LLM usage & data security rules |
+
+**Verify:** the roadmap, plan and tech stack agree on the phase order: 0–9 with Claude, 10 local,
+11 security.
+
+**Learn:** LEARNING_GUIDE Part 10 (start with 10.1 and 10.2, needed for the next feature).
 
 ---
 

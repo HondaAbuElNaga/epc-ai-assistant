@@ -21,7 +21,9 @@
 
 | Area | Choice | Status | Notes |
 |---|---|---|---|
-| LLM SDK | `anthropic` | ✅ | Wrapped in `src/common/llm.py` (retries, token usage) |
+| LLM interface | **Provider-agnostic** `src/common/llm.py`, backend chosen by `LLM_PROVIDER` (`anthropic` / `ollama` / `vllm` / `fake`) | 🔜 Phase 0 (spec) | Swap models without touching module code |
+| Data guard | `DATA_CLASSIFICATION=public\|confidential`; external providers refused for confidential data | 🔜 Phase 0 (spec) | Confidential data never leaves |
+| LLM SDK (phase 1) | `anthropic` | ✅ | Claude on **public data only** |
 | Main model | `claude-sonnet-5-5` | ✅ | Answers, reasoning, agent, reports |
 | Fast model | `claude-haiku-4-5` | ✅ | Bulk extraction, classification, cheap evaluation |
 | Config | `python-dotenv` | ✅ | `.env` → `src/common/config.py` |
@@ -48,6 +50,28 @@
 | C: OCR | PaddleOCR or EasyOCR | 🔜 Stage 6 |
 | C: Graph | NetworkX | 🔜 Stage 6 |
 | E: Agent | Claude tool use (custom loop, no framework) | 🔜 Stage 8 |
+
+## Local models & serving (Stage 13)
+
+| Area | Choice | Status | Notes |
+|---|---|---|---|
+| Local serving (dev) | **Ollama** as a Docker Compose service, NVIDIA GPU via Docker Desktop + WSL2, port 11434 (internal only) | 🔜 Stage 13 | Runs on the RTX 4060 |
+| Server serving (company) | **vLLM** (OpenAI-compatible API, xgrammar structured output) | 🔜 Stage 13 (design) | For larger models on company GPUs |
+| Main local model | **Qwen3.5-9B**, Q4_K_M (fits 8 GB VRAM) | 🔜 Stage 13 | RAG, extraction, reports |
+| Alternatives | Llama 3.1 8B, Mistral 7B, Gemma 4 E4B; optional MoE (Qwen 3.6 35B-A3B) partly in system RAM | 🔜 Stage 13 | Compared on the golden sets |
+| Structured output | Ollama `format` (JSON schema) / vLLM xgrammar | 🔜 Stage 13 | 100% schema-valid JSON |
+| Grounding check | **HHEM-2.1-Open** (Vectara) or an NLI model, on CPU | 🔜 Stage 13 | Scores whether claims are supported by their source |
+| Document parsing (upgrade) | Docling + Granite-Docling (local) | 🔜 optional | Tables in scanned PDFs |
+
+## Security (Stage 14)
+
+| Area | Choice | Status |
+|---|---|---|
+| Network isolation | Docker network `internal: true` for LLM, vector DB, app | 🔜 Stage 14 |
+| Offline mode | `HF_HUB_OFFLINE=1`, `TRANSFORMERS_OFFLINE=1`, `ANONYMIZED_TELEMETRY=False`, Streamlit `gatherUsageStats=false` | 🔜 Stage 14 |
+| Model supply chain | GGUF / safetensors only, SHA-256 in `models/MODELS.lock`, pinned versions | 🔜 Stage 14 |
+| Access control | Permission-aware retrieval (`access_groups` metadata filter) + app authentication | 🔜 Stage 14 |
+| Audit | Structured audit log (user, query, retrieved docs, model, checks) | 🔜 Stage 14 |
 
 ## Application
 
@@ -87,5 +111,7 @@
 - Code: `src/<module>/` packages with a small public API; tests in `tests/`; final code never
   lives in notebooks.
 - The LLM never computes numbers; every factual answer is cited.
+- **All LLM calls go through `src/common/llm.py`**; no module imports a provider SDK directly.
+- **Confidential data only with local providers** (enforced by the data classification guard).
 - Secrets only in `.env` (git-ignored) or platform secrets.
 - Raw data is never modified (`data/raw` → scripts → `data/processed`).
