@@ -1,7 +1,7 @@
 # Spec: Provider-agnostic LLM interface + data classification guard
 
 **Roadmap item:** Phase 0, "Provider-agnostic LLM interface + data classification guard"
-**Status:** draft (awaiting approval)
+**Status:** approved (2026-10-07, with review fixes 1–5 below)
 **Related:** PROJECT_PLAN Stage 13.1 · product/mission.md ("Local-first ready")
 
 ## Goal
@@ -32,7 +32,10 @@ impossible to send **confidential** data to an external provider.
 
 1. `src/common/llm.py` public API:
    - `complete(prompt, *, system=None, tier="main", model=None, max_tokens=1024) -> str`
+   - An explicit `model=` wins over `tier=` (fix 4).
    - `usage`: cumulative calls and tokens; `last_call()`: provider and model of the last call.
+   - `reset_usage()`: clears the counters; an autouse pytest fixture calls it so every test
+     starts from zero (fix 5).
 2. Provider selection by `LLM_PROVIDER` (default `anthropic`). An unknown name gives a clear error
    listing the valid providers.
 3. Each provider declares `name` and `is_external: bool` (`anthropic` = True, `fake` = False;
@@ -41,10 +44,15 @@ impossible to send **confidential** data to an external provider.
    `complete()` raises `DataClassificationError` **before** creating a client or opening any
    network connection.
 5. Tier → model mapping in `config.py` per provider, overridable from `.env`
-   (e.g. `ANTHROPIC_MODEL_MAIN`, `ANTHROPIC_MODEL_FAST`).
-6. No module outside `src/common/` imports `anthropic` (or any provider SDK). Enforced by a test.
+   (e.g. `ANTHROPIC_MODEL_MAIN`, `ANTHROPIC_MODEL_FAST`). `config.MODEL_MAIN` / `MODEL_FAST`
+   stay available as aliases for the Anthropic tier models, so existing code keeps working
+   (fix 2).
+6. No file outside `src/common/providers/` imports `anthropic` (or any provider SDK), not even
+   `llm.py`. Enforced by a test (fix 1).
 7. `fake` provider returns deterministic text (configurable reply, default echoes a short marker)
    and counts usage, so unit tests never call a real API.
+8. `DATA_CLASSIFICATION` defaults to `public` (current phases use public data only). Any value
+   other than `public` / `confidential` raises a clear error instead of being ignored (fix 3).
 
 ## Inputs / outputs
 
@@ -67,7 +75,11 @@ impossible to send **confidential** data to an external provider.
       is never called).
 - [ ] `DATA_CLASSIFICATION=confidential` + `LLM_PROVIDER=fake` (non-external): works.
 - [ ] `tier="fast"` resolves to the configured fast model for the active provider.
-- [ ] Architecture test: no file under `src/` except `src/common/providers/` imports `anthropic`.
+- [ ] `model="x"` together with `tier="fast"` uses `x` (fix 4).
+- [ ] `DATA_CLASSIFICATION` unset → `public`; an invalid value raises a clear error (fix 3).
+- [ ] `config.MODEL_MAIN` / `MODEL_FAST` equal the Anthropic main/fast models (fix 2).
+- [ ] Architecture test: no file under `src/` except `src/common/providers/` imports `anthropic`
+      (fix 1).
 - [ ] Existing `tests/test_setup.py` still passes (backward compatible), including `-m llm` once
       the API key is added.
 - [ ] `ruff check` and `ruff format` clean; all tests pass in the container.
