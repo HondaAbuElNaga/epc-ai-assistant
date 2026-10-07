@@ -1,7 +1,7 @@
 # Spec: Provider-agnostic LLM interface + data classification guard
 
 **Roadmap item:** Phase 0, "Provider-agnostic LLM interface + data classification guard"
-**Status:** approved (2026-10-07, with review fixes 1–5 below)
+**Status:** done (approved and built 2026-10-07, with review fixes 1–5 below)
 **Related:** PROJECT_PLAN Stage 13.1 · product/mission.md ("Local-first ready")
 
 ## Goal
@@ -68,22 +68,22 @@ impossible to send **confidential** data to an external provider.
 
 ## Acceptance criteria
 
-- [ ] `LLM_PROVIDER=fake`: `llm.complete("hi")` returns the fake reply; `usage.calls == 1`.
-- [ ] `LLM_PROVIDER=unknown`: raises a clear error listing the valid providers.
-- [ ] `DATA_CLASSIFICATION=confidential` + `LLM_PROVIDER=anthropic`: raises
+- [x] `LLM_PROVIDER=fake`: `llm.complete("hi")` returns the fake reply; `usage.calls == 1`.
+- [x] `LLM_PROVIDER=unknown`: raises a clear error listing the valid providers.
+- [x] `DATA_CLASSIFICATION=confidential` + `LLM_PROVIDER=anthropic`: raises
       `DataClassificationError`, and a test proves **no client was created** (the provider factory
       is never called).
-- [ ] `DATA_CLASSIFICATION=confidential` + `LLM_PROVIDER=fake` (non-external): works.
-- [ ] `tier="fast"` resolves to the configured fast model for the active provider.
-- [ ] `model="x"` together with `tier="fast"` uses `x` (fix 4).
-- [ ] `DATA_CLASSIFICATION` unset → `public`; an invalid value raises a clear error (fix 3).
-- [ ] `config.MODEL_MAIN` / `MODEL_FAST` equal the Anthropic main/fast models (fix 2).
-- [ ] Architecture test: no file under `src/` except `src/common/providers/` imports `anthropic`
+- [x] `DATA_CLASSIFICATION=confidential` + `LLM_PROVIDER=fake` (non-external): works.
+- [x] `tier="fast"` resolves to the configured fast model for the active provider.
+- [x] `model="x"` together with `tier="fast"` uses `x` (fix 4).
+- [x] `DATA_CLASSIFICATION` unset → `public`; an invalid value raises a clear error (fix 3).
+- [x] `config.MODEL_MAIN` / `MODEL_FAST` equal the Anthropic main/fast models (fix 2).
+- [x] Architecture test: no file under `src/` except `src/common/providers/` imports `anthropic`
       (fix 1).
-- [ ] Existing `tests/test_setup.py` still passes (backward compatible), including `-m llm` once
-      the API key is added.
-- [ ] `ruff check` and `ruff format` clean; all tests pass in the container.
-- [ ] DEVLOG step, LEARNING_GUIDE section (provider abstraction / adapter pattern), roadmap tick.
+- [x] Existing `tests/test_setup.py` still passes (backward compatible).
+- [ ] `-m llm` real Claude call passes (open: needs the API key; tracked in the roadmap).
+- [x] `ruff check` and `ruff format` clean; all tests pass in the container.
+- [x] DEVLOG step, LEARNING_GUIDE section (provider abstraction / adapter pattern), roadmap tick.
 
 ## Technical approach
 

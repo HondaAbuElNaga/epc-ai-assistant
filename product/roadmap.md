@@ -10,9 +10,9 @@
 **Model strategy:** build with **Claude on public data** (Phases 0–9), then move to **local
 models** (Phase 10) and harden for **confidential data** (Phase 11).
 
-**Current position:** Phase 0 almost done (API key pending; LLM interface spec awaiting
-approval) · Phase 1 material written, study in progress · **next: LLM interface, then Phase 2
-(data)**.
+**Current position:** Phase 0 almost done: LLM interface + data guard built (2026-10-07); only
+the API key and the real Claude test call remain · Phase 1 material written, study in progress ·
+**next: add the API key and run `pytest -m llm`, then Phase 2 (data)**.
 
 ---
 
@@ -29,7 +29,7 @@ approval) · Phase 1 material written, study in progress · **next: LLM interfac
 - [x] Documentation system: DEVLOG, LEARNING_GUIDE, CLAUDE.md `S`
 - [x] SDD product docs: mission, tech stack, roadmap `XS`
 - [ ] `.env` with API key; real Claude test call passes `XS`
-- [ ] Provider-agnostic LLM interface + data classification guard ([spec](../specs/2026-10-06-llm-provider-interface/spec.md)) `S`
+- [x] Provider-agnostic LLM interface + data classification guard ([spec](../specs/2026-10-06-llm-provider-interface/spec.md)) `S`
 
 ## Phase 1: Domain Knowledge (Stage 1)
 

@@ -778,7 +778,7 @@ one risk (data leaving to an API).
 - [ ] Interview notes
 
 **Stage 13: Local models**
-- [ ] Provider-agnostic LLM interface + classification guard (built in Phase 0)
+- [x] Provider-agnostic LLM interface + classification guard (built in Phase 0)
 - [ ] Ollama service with GPU in Docker
 - [ ] Claude vs. local comparison on all golden sets
 - [ ] Per-module switch decisions

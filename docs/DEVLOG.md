@@ -23,6 +23,7 @@ New steps are added at the bottom. Technologies mentioned here are explained in
 | 9 | 2026-10-05 | Stage 1 | EPC domain fundamentals study notes |
 | 10 | 2026-10-05 | Process | Spec-driven development: mission, tech stack, roadmap, specs |
 | 11 | 2026-10-06 | Strategy | Claude first, then local models + security for confidential data |
+| 12 | 2026-10-07 | Stage 0 | Provider-agnostic LLM interface + data classification guard |
 
 ---
 
@@ -369,6 +370,59 @@ the company**. Research (Oct 2026) showed:
 11 security.
 
 **Learn:** LEARNING_GUIDE Part 10 (start with 10.1 and 10.2, needed for the next feature).
+
+---
+
+## Step 12: Provider-agnostic LLM interface + data classification guard
+
+**What:** rebuilt `src/common/llm.py` so every module calls the LLM through one interface that
+does not know which vendor is behind it. Added two providers (`anthropic`, `fake`), model tiers
+(`main` / `fast`), and a guard that refuses to send confidential data to an external provider.
+Spec: [`specs/2026-10-06-llm-provider-interface/`](../specs/2026-10-06-llm-provider-interface/spec.md)
+(approved 2026-10-07 with 5 review fixes).
+
+**Why:** this is what lets the project start with Claude on public data and later switch to local
+models (Phase 10) by changing `.env` only. The guard turns the rule "confidential data never
+leaves the company" into code that is tested.
+
+**How:**
+1. Wrote `tests/test_llm_interface.py` first; it failed (`No module named 'src.common.providers'`).
+2. Built `src/common/providers/` (contract, fake, anthropic), then `config.py` and `llm.py`.
+3. `complete()` order: read `LLM_PROVIDER` → look up the provider class (unknown name → error
+   listing the valid ones) → guard (checks the class's `is_external`, before any client exists)
+   → resolve model (`model=` wins, else tier) → create/reuse the provider → call → count usage.
+```bash
+docker compose exec dev uv run ruff format .
+docker compose exec dev uv run ruff check .
+docker compose exec dev uv run pytest -v
+```
+
+**Files:**
+| File | Change |
+|---|---|
+| `src/common/providers/base.py` | `LLMRequest`, `LLMResponse`, `LLMProvider` Protocol, `DataClassificationError`, `UnknownProviderError` |
+| `src/common/providers/anthropic_provider.py` | Claude adapter (the old client code moved here); `is_external = True` |
+| `src/common/providers/fake_provider.py` | Offline adapter for tests; reply from `FAKE_LLM_REPLY` or a fixed marker |
+| `src/common/providers/__init__.py` | Re-exports the contract and errors |
+| `src/common/llm.py` | Registry, guard, tiers, `usage`, `reset_usage()`, `last_call()`; no SDK import |
+| `src/common/config.py` | `llm_provider()`, `data_classification()`, `model_for()`, `anthropic_api_key()`; `MODEL_MAIN`/`MODEL_FAST` kept as aliases |
+| `.env.example` | Documents `LLM_PROVIDER`, `DATA_CLASSIFICATION`, model overrides |
+| `tests/test_llm_interface.py` | 13 tests covering every acceptance criterion, incl. the architecture test |
+| `tests/conftest.py` | Autouse fixture: zero usage and no cached providers before each test |
+| `pyproject.toml` | ruff `extend-exclude = ["*.md"]` (see Problems & fixes) |
+
+**Verify:** in the container, `ruff check` → `All checks passed!`, `ruff format` → `17 files left
+unchanged`, `pytest` → **22 passed, 1 skipped**. The skip is `test_claude_call` (no
+`ANTHROPIC_API_KEY` yet); the real-API check is still open.
+
+**Problems & fixes:**
+- `ruff format .` (ruff 0.16.10) also reformatted Python code blocks inside Markdown, breaking the
+  aligned comments in `docs/03_evm_formulas.md`. Restored the three affected docs with
+  `git checkout` and added `extend-exclude = ["*.md"]` to `[tool.ruff]`.
+- One line in `config.py` was 102 characters (E501); split it.
+
+**Learn:** LEARNING_GUIDE 10.1 (adapter pattern, now with how it is built here) and 10.2 (data
+guard, design choices), 8.4 (ruff Markdown note), 8.2 (mocking with `monkeypatch`).
 
 ---
 

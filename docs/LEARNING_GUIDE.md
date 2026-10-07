@@ -883,6 +883,10 @@ consistent).
 
 **Run:** `uv run ruff check .` · `uv run ruff check . --fix` · `uv run ruff format .`
 
+**Markdown note:** ruff 0.16 also formats Python code blocks inside `.md` files. That broke the
+hand-aligned comments in `docs/03_evm_formulas.md`, so `pyproject.toml` has
+`extend-exclude = ["*.md"]`: ruff only touches `.py` files.
+
 **Study:** https://docs.astral.sh/ruff/
 
 ---
@@ -999,7 +1003,25 @@ class LLMProvider(Protocol):
 PROVIDERS = {"anthropic": AnthropicProvider, "ollama": OllamaProvider, "fake": FakeProvider}
 ```
 
-**Where:** `src/common/llm.py`, `src/common/providers/`
+**How it is built here (Phase 0):**
+- `providers/base.py`: `LLMRequest`, `LLMResponse`, the `LLMProvider` Protocol and the errors.
+- `providers/anthropic_provider.py` (external) and `providers/fake_provider.py` (offline, tests).
+- `llm.py`: registry `PROVIDERS = {name: class}`; one instance per provider, created on first use
+  and cached; `complete()` resolves the model (`model=` wins, else `config.model_for(provider,
+  tier)`), calls the adapter, adds tokens to `usage`, and remembers `last_call()`.
+- `config.py`: settings are **functions** (`llm_provider()`, `model_for()`), read at call time,
+  so a test can switch provider with `monkeypatch.setenv("LLM_PROVIDER", "fake")`.
+- Adding Ollama later = one new file in `providers/` + one line in `PROVIDERS` + default models.
+
+**Using it:**
+```python
+from src.common import llm
+
+answer = llm.complete("Explain CPI in one sentence", tier="fast")
+print(answer, llm.usage, llm.last_call().model)
+```
+
+**Where:** `src/common/llm.py`, `src/common/providers/`, tests in `tests/test_llm_interface.py`
 (spec: `specs/2026-10-06-llm-provider-interface/`).
 
 **Study:** https://refactoring.guru/design-patterns/adapter ·
@@ -1017,6 +1039,27 @@ external API. A guard turns a policy into code that can be tested.
 
 **Key concepts:** fail-closed (when unsure, refuse); checking before side effects; tests that prove
 "no client was created".
+
+**Example (from `src/common/llm.py`):**
+```python
+def _check_data_guard(provider_cls):
+    if config.data_classification() == "confidential" and provider_cls.is_external:
+        raise DataClassificationError(...)
+```
+The guard looks at the provider **class** (`is_external` is a class attribute), so it runs before
+`provider_cls()` creates any client. The test replaces `AnthropicProvider.__init__` with a function
+that fails the test if called, which proves no client was created.
+
+**Design choices:** `DATA_CLASSIFICATION` defaults to `public` because Phases 0–9 use public data
+only; this is a convenience default, not fail-closed. A typo (e.g. `confidental`) raises an error
+instead of silently counting as public. For confidential deployments, set the value explicitly;
+Phase 11 adds network isolation as a second layer.
+
+**Where:** `src/common/llm.py` (`_check_data_guard`), `src/common/config.py`
+(`data_classification`), tests in `tests/test_llm_interface.py`.
+
+**Study:** https://en.wikipedia.org/wiki/Fail-safe ·
+https://docs.pytest.org/en/stable/how-to/monkeypatch.html
 
 ---
 
