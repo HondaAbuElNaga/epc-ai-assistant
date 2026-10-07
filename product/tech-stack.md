@@ -21,8 +21,8 @@
 
 | Area | Choice | Status | Notes |
 |---|---|---|---|
-| LLM interface | **Provider-agnostic** `src/common/llm.py`, backend chosen by `LLM_PROVIDER` (`anthropic` / `ollama` / `vllm` / `fake`) | 🔜 Phase 0 (spec) | Swap models without touching module code |
-| Data guard | `DATA_CLASSIFICATION=public\|confidential`; external providers refused for confidential data | 🔜 Phase 0 (spec) | Confidential data never leaves |
+| LLM interface | **Provider-agnostic** `src/common/llm.py`, backend chosen by `LLM_PROVIDER` (`anthropic` / `fake` built; `ollama` / `vllm` in Stage 13) | ✅ | Swap models without touching module code |
+| Data guard | `DATA_CLASSIFICATION=public\|confidential`; external providers refused for confidential data | ✅ | Confidential data never leaves |
 | LLM SDK (phase 1) | `anthropic` | ✅ | Claude on **public data only** |
 | Main model | `claude-sonnet-5-5` | ✅ | Answers, reasoning, agent, reports |
 | Fast model | `claude-haiku-4-5` | ✅ | Bulk extraction, classification, cheap evaluation |
