@@ -139,6 +139,11 @@ COPY . .                    # code changes don't invalidate the layer above
 **Key concepts:** services, `build`, `volumes`, `ports`, `env_file`, `command`;
 `up -d` (start in the background), `exec` (run a command inside), `down` (stop), `logs`.
 
+**`env_file` gotcha:** Compose reads `.env` only when it **creates** the container. Editing `.env`
+later does not change a running container, and `load_dotenv()` never overrides a variable that is
+already set, so the old value wins silently. After changing `.env`, run
+`docker compose up -d --force-recreate`.
+
 **Example:**
 ```bash
 docker compose up -d --build

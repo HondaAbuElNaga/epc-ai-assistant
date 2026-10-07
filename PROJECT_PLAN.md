@@ -182,8 +182,8 @@ Assumes 3–4 hours a day.
 - Run: `docker compose exec dev uv run pytest`, then `docker compose exec dev uv run pytest -m llm`.
 
 **Done when:**
-- [ ] `docker compose exec dev uv run pytest` passes
-- [ ] The repository is on GitHub with no `.env` committed
+- [x] `docker compose exec dev uv run pytest` passes
+- [x] The repository is on GitHub with no `.env` committed
 
 ---
 
@@ -705,7 +705,7 @@ one risk (data leaving to an API).
 
 **Stage 0: Setup**
 - [x] Docker `dev` container builds and runs; dependencies managed with uv (`pyproject.toml` + `uv.lock`)
-- [ ] `.env` with API key; Claude test call works
+- [x] `.env` with API key; Claude test call works
 - [x] `src/common/config.py`, `src/common/llm.py`
 - [x] GitHub repository pushed
 

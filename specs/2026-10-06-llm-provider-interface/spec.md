@@ -81,7 +81,7 @@ impossible to send **confidential** data to an external provider.
 - [x] Architecture test: no file under `src/` except `src/common/providers/` imports `anthropic`
       (fix 1).
 - [x] Existing `tests/test_setup.py` still passes (backward compatible).
-- [ ] `-m llm` real Claude call passes (open: needs the API key; tracked in the roadmap).
+- [x] `-m llm` real Claude call passes (2026-10-07, after the API key was added).
 - [x] `ruff check` and `ruff format` clean; all tests pass in the container.
 - [x] DEVLOG step, LEARNING_GUIDE section (provider abstraction / adapter pattern), roadmap tick.
 

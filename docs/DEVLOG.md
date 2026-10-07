@@ -24,6 +24,7 @@ New steps are added at the bottom. Technologies mentioned here are explained in
 | 10 | 2026-10-05 | Process | Spec-driven development: mission, tech stack, roadmap, specs |
 | 11 | 2026-10-06 | Strategy | Claude first, then local models + security for confidential data |
 | 12 | 2026-10-07 | Stage 0 | Provider-agnostic LLM interface + data classification guard |
+| 13 | 2026-10-07 | Stage 0 | API key and first real Claude call (Phase 0 done) |
 
 ---
 
@@ -423,6 +424,45 @@ unchanged`, `pytest` → **22 passed, 1 skipped**. The skip is `test_claude_call
 
 **Learn:** LEARNING_GUIDE 10.1 (adapter pattern, now with how it is built here) and 10.2 (data
 guard, design choices), 8.4 (ruff Markdown note), 8.2 (mocking with `monkeypatch`).
+
+---
+
+## Step 13: API key and first real Claude call (Phase 0 done)
+
+**What:** added `ANTHROPIC_API_KEY` to `.env` (git-ignored) and ran the real API test through the
+new provider interface. This closes Phase 0.
+
+**Why:** Phase 0 is "done when `pytest -m llm` passes": it proves the whole path works,
+`llm.complete()` → registry → guard → Anthropic adapter → Claude API.
+
+**How:**
+```bash
+docker compose up -d --force-recreate   # reload .env into the container
+docker compose exec dev uv run pytest -m llm -v
+docker compose exec dev uv run pytest
+```
+
+**Files:**
+| File | Change |
+|---|---|
+| `.env` | API key (local only, never committed; checked with `git ls-files` and `git log --all -- .env`) |
+| `product/roadmap.md` | Phase 0 key item ticked; current position → Phase 2 next |
+| `PROJECT_PLAN.md` | Stage 0 "done when" items and checklist ticked |
+| `specs/2026-10-06-llm-provider-interface/spec.md` | Last acceptance criterion (`-m llm`) ticked |
+| `docs/LEARNING_GUIDE.md` | 1.4 Docker Compose: `env_file` gotcha |
+
+**Verify:** `pytest -m llm` → `1 passed, 22 deselected`; full `pytest` → **23 passed**.
+
+**Problems & fixes:**
+1. First run: `400 invalid_request_error`, "Your credit balance is too low to access the
+   Anthropic API". The key was accepted, but the account had no API credit (API billing is separate
+   from a claude.ai subscription). Fix: add credit in console.anthropic.com → Plans & Billing.
+2. Second run: `401 authentication_error`, "API key is invalid". The container still had the
+   **old** key: Compose loads `env_file` only when the container is created, and `load_dotenv()`
+   does not override an existing variable. Compared the two values (without printing them): not
+   equal. Fix: `docker compose up -d --force-recreate`; the values then matched and the test passed.
+
+**Learn:** LEARNING_GUIDE 1.4 Docker Compose (`env_file` gotcha), 9.3 secrets management.
 
 ---
 
