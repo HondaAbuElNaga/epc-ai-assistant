@@ -1,0 +1,52 @@
+{
+  "success": true,
+  "data": {
+    "title": "UFGS 03 30 00 Cast-In-Place Concrete",
+    "status": "ACTIVE",
+    "publishDate": "2019-02-01T00:00:00.000Z",
+    "mediaFiles": [
+      {
+        "fileName": "UFGS 03 30 00.zip",
+        "fileUrl": "https://nibs-s3-wbdg3-production.s3.us-east-1.amazonaws.com/FFC/DOD/UFGS/UFGS%2003%2030%2000.zip",
+        "versionNumber": 4,
+        "isCurrent": true,
+        "isArchived": false
+      },
+      {
+        "fileName": "UFGS 03 30 00.pdf",
+        "fileUrl": "https://nibs-s3-wbdg3-production.s3.us-east-1.amazonaws.com/FFC/DOD/UFGS/UFGS%2003%2030%2000.pdf",
+        "versionNumber": 4,
+        "isCurrent": true,
+        "isArchived": false
+      },
+      {
+        "fileName": "UFGS 03 30 00.zip",
+        "fileUrl": "https://nibs-s3-wbdg3-production.s3.us-east-1.amazonaws.com/documents/2026-06/UFGS_03_30_00_1780434416198_g19zh4n8okm.zip",
+        "versionNumber": 3,
+        "isCurrent": false,
+        "isArchived": true
+      },
+      {
+        "fileName": "UFGS 03 30 00.pdf",
+        "fileUrl": "https://nibs-s3-wbdg3-production.s3.us-east-1.amazonaws.com/FFC/DOD/UFGS_ARCHIVES/UFGS%2003%2030%2000.pdf",
+        "versionNumber": 3,
+        "isCurrent": false,
+        "isArchived": true
+      },
+      {
+        "fileName": "UFGS 03 30 00.zip",
+        "fileUrl": "https://nibs-s3-wbdg3-production.s3.us-east-1.amazonaws.com/FFC/DOD/UFGS/UFGS%252003%252030%252000.zip",
+        "versionNumber": 2,
+        "isCurrent": false,
+        "isArchived": true
+      },
+      {
+        "fileName": "UFGS 03 30 00.pdf",
+        "fileUrl": "https://nibs-s3-wbdg3-production.s3.us-east-1.amazonaws.com/FFC/DOD/UFGS_ARCHIVES/UFGS%2003%2030%2000.pdf",
+        "versionNumber": 1,
+        "isCurrent": false,
+        "isArchived": true
+      }
+    ]
+  }
+}

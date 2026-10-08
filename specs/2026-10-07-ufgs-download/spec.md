@@ -1,7 +1,7 @@
 # Spec: UFGS download script
 
 **Roadmap item:** Phase 2, "UFGS download script (divisions 01, 03, 05, 22, 23, 26, 33)"
-**Status:** approved (2026-10-07)
+**Status:** done (2026-10-08). v2 update approved 2026-10-08. v1 was approved 2026-10-07 and built (commit `f0d7d8b`).
 **Related:** PROJECT_PLAN Stage 2 · used by Module A (spec RAG) and Module B (classification)
 
 ## Goal
@@ -10,6 +10,95 @@ Download the current UFGS (Unified Facilities Guide Specifications) PDFs for sev
 into `data/raw/ufgs/`, politely and repeatably, with a manifest that records exactly what was
 downloaded, from where, when, and what was missing. These real specifications are the corpus for
 Module A and the labeled data for Module B.
+
+## v2 update (2026-10-08): why and what changes
+
+**What v1 measured** (full run, 7 divisions, 599 sections): 257 downloaded, 3 skipped,
+**339 not_found**, 0 errors, 260 PDFs, 38.1 MB.
+
+**Why so many misses (verified):** the sitemap lists current *and* retired sections. A sample
+of 30 `not_found` sections were all `RETIRED_SUPERSEDED` with no files. Some PDFs v1
+downloaded are also retired sections: their old PDF is still in the bucket.
+
+**The WBDG API (verified 2026-10-08, undocumented):**
+`GET https://www.wbdg.org/api/documents/ufgs-<section_id>` returns
+`{success, data: {title, status, publishDate, mediaFiles: [...], ...}}`.
+
+- `status` is `ACTIVE` or `RETIRED_SUPERSEDED`.
+- Each `mediaFiles` item has `fileName`, `fileUrl`, `isCurrent`, `isArchived` and
+  `versionNumber`.
+- Examples:
+  - `03-30-00` (ACTIVE) has a current `UFGS 03 30 00.pdf` and `.zip` under
+    `/FFC/DOD/UFGS/`, plus older archived versions under `UFGS_ARCHIVES/` and `documents/`.
+  - `40-05-13` (ACTIVE) has the same structure.
+  - `33-32-13-13` (RETIRED) has `mediaFiles: []`.
+
+**Decisions (approved by the owner 2026-10-08):**
+1. **Scope (option B):** the 7 divisions plus the process divisions:
+   - 40 Process Interconnections;
+   - 41 Material Processing and Handling Equipment;
+   - 42 Process Heating, Cooling, and Drying Equipment;
+   - 43 Process Gas and Liquid Handling, Purification, and Storage Equipment;
+   - 44 Pollution and Waste Control Equipment;
+   - 46 Water and Wastewater Equipment.
+
+   That's 106 more sitemap entries (current + retired), **705 in total**. Correction: in chat I
+   said "+112". That number also counted division 48 (Electrical Power Generation, 6 entries),
+   which isn't in option B.
+2. **Active only:** a section is downloaded only if the API says `ACTIVE`.
+3. **Delete the retired PDFs** that v1 put on disk.
+4. **v1 committed first** as a checkpoint (done: `f0d7d8b`).
+
+**v2 requirements (replacing 2, 5 and 7 below where they differ):**
+- V1. For every sitemap section in scope, call the API through the same `PoliteClient`
+  (1 s delay, retries).
+- V2. **Picking the PDF:**
+  - Choose the `mediaFiles` item where `isCurrent` is true, `isArchived` is false and
+    `fileName` ends in `.pdf`. Download its exact `fileUrl`; the URL is no longer built from
+    the name rule.
+  - If there isn't exactly one such item, record `error` with the reason. Never guess.
+- V3. **New statuses:**
+  - `retired`: the API status isn't `ACTIVE`; nothing is downloaded.
+  - `no_pdf`: the section is ACTIVE but has no current PDF.
+  - `not_found`: the API returns 404 or `success: false`.
+
+  The full set is `downloaded | skipped | retired | no_pdf | not_found | error`.
+- V4. **The manifest** gains `title`, `api_status`, `publish_date` and `api_url`. `pdf_url` is
+  now the URL from the API.
+- V5. **Resume:** an existing valid PDF is still `skipped`, but only after the API confirms the
+  section is ACTIVE. That one API call per section is how retired files are detected.
+- V6. **Cleanup:**
+  - At the end of a run, if a PDF exists on disk for a section now marked `retired`, delete it
+    and log it. The manifest entry gets `"removed": true`.
+  - `--keep-retired` turns this off.
+  - Deletion only touches files at our own `local_path` for that section, never anything else.
+- V7. `DEFAULT_DIVISIONS` becomes the 13 divisions above.
+- V8. The name rule (`pdf_name`) stays only for the local file name, and the network test still
+  uses it.
+
+**v2 acceptance criteria (added to those below):**
+- [ ] Offline tests:
+  - an ACTIVE section downloads the API's `fileUrl`, not a built URL;
+  - a RETIRED section becomes `retired` and makes no PDF request;
+  - ACTIVE with no current PDF becomes `no_pdf`;
+  - two current PDFs becomes `error`;
+  - API 404 becomes `not_found`;
+  - a retired file on disk is deleted, and `--keep-retired` keeps it;
+  - an existing ACTIVE PDF is `skipped`.
+- [ ] Real run for 13 divisions: every in-scope sitemap section is in the manifest; 0 `error`
+      after a re-run; a second run downloads nothing.
+- [ ] No PDF on disk belongs to a section whose status isn't ACTIVE.
+- [ ] Real counts are reported in the DEVLOG exactly as they come out.
+
+**Estimate:** 705 API calls plus about one PDF request per active section at at least 1 s
+each, so roughly 15–25 minutes. This is an estimate; the real time goes in the DEVLOG.
+
+**Risk:** the API is undocumented and may change. Mitigations:
+- one function parses it;
+- the network test calls it for `03-30-00`;
+- if `success` or `mediaFiles` is missing, the section becomes `error` rather than a guess.
+
+---
 
 ## Source facts (verified 2026-10-07)
 
@@ -52,9 +141,8 @@ Module A and the labeled data for Module B.
 - Ghent, PID2Graph, OSHA and NYC downloads.
 - `DATA_CATALOG.md`, `data/checksums.json`, profiling notebook, `tests/test_data_integrity.py`
   (opening every PDF needs PyMuPDF, which arrives in Stage 3).
-- Reverse-engineering WBDG's internal API to recover `not_found` sections. If the miss rate turns
-  out to be high, we decide on that in a follow-up spec.
-- Archived sections and other divisions.
+- ~~Reverse-engineering WBDG's internal API~~: now in scope (v2 above).
+- Archived/retired sections and divisions outside the 13 (02, 07–14, 21, 25, 27, 28, 31, 32, 34, 35, 48, 00).
 
 ## Requirements
 

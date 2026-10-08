@@ -10,9 +10,9 @@
 **Model strategy:** build with **Claude on public data** (Phases 0–9), then move to **local
 models** (Phase 10) and harden for **confidential data** (Phase 11).
 
-**Current position:** Phase 0 done (2026-10-07: LLM interface + data guard built, real Claude
-call passes) · Phase 1 material written, study in progress · **next: Phase 2 (real data), starting
-with a spec for the UFGS download script**.
+**Current position:** Phase 0 done (2026-10-07) · Phase 1 material written, study in progress ·
+Phase 2 in progress: UFGS downloaded (2026-10-08, 271 active PDFs in 13 divisions) · **next: a
+spec for the Ghent project database (download, inspect the format, loader)**.
 
 ---
 
@@ -44,7 +44,7 @@ with a spec for the UFGS download script**.
 **Goal:** all datasets downloaded, catalogued, profiled and integrity-tested.
 **Done when:** `DATA_CATALOG.md` is complete and the data tests pass.
 
-- [ ] UFGS download script (divisions 01, 03, 05, 22, 23, 26, 33) `S`
+- [x] UFGS download script: active sections of divisions 01, 03, 05, 22, 23, 26, 33 + process 40–46 (271 PDFs, 2026-10-08) `S`
 - [ ] Ghent project database: download, inspect format, loader `S`
 - [ ] PID2Graph + Dataset-P&ID download `XS`
 - [ ] OSHA + NYC capital projects (optional) `XS`

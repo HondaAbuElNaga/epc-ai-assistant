@@ -21,7 +21,7 @@ For each one:
 |---|---|
 | Stage 0 (setup) | 8.7 Spec-driven development · 1.1 Python · 1.2 Git & GitHub · 1.3 Docker · 1.4 Docker Compose · 1.5 uv · 8.1 pytest · 8.4 ruff |
 | Stage 1 (EPC) | 2.1 EPC basics · 2.2 Earned Value Management |
-| Stage 2 (data) | 1.6 pandas & numpy · 1.7 Jupyter · 1.8 HTTP & requests · 1.9 Web data acquisition · 1.10 Data integrity · 6.1 Data validation |
+| Stage 2 (data) | 1.6 pandas & numpy · 1.7 Jupyter · 1.8 HTTP & requests · 1.9 Web data acquisition · 1.10 Data integrity · 1.11 Web page vs API · 6.1 Data validation |
 | Stage 3 (RAG) | Part 3 (all of 3.1 → 3.12) |
 | Stage 4 (documents) | 4.1 → 4.6 · 3.5 Structured output · 3.6 Pydantic |
 | Stage 5 (project controls) | 2.2 EVM · 4.4 Tree models / XGBoost · 4.5 Cross-validation · 4.6 Regression metrics · 6.1 pandera |
@@ -293,7 +293,7 @@ https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
 
 **What:** making sure every data file is complete, unchanged, and traceable to its source.
 
-**Why here:** a 599-file download will sometimes be interrupted. Later modules (RAG, evaluation)
+**Why here:** a download of hundreds of files will sometimes be interrupted. Later modules (RAG, evaluation)
 are only trustworthy if we know exactly which files they were built on.
 
 **Key concepts:**
@@ -323,6 +323,48 @@ print(digest.hexdigest())
 
 **Study:** https://docs.python.org/3/library/hashlib.html ·
 https://docs.python.org/3/library/pathlib.html#pathlib.Path.replace
+
+---
+
+## 1.11 Web page vs API (JSON)
+
+**What:** a web page is HTML made for people to read. An **API** answers the same questions as
+structured data (usually **JSON**) made for programs.
+
+**Why here:** UFGS v1 built each PDF link from the section number, and 339 of 599 sections came
+back "not found". The page in the browser knew why. It loads its data from
+`https://www.wbdg.org/api/documents/ufgs-<id>`, which says whether a section is `ACTIVE` or
+`RETIRED_SUPERSEDED` and gives the exact link of the current PDF. v2 asks the API instead of
+guessing.
+
+**Key concepts:**
+- **Finding a site's API:** open the browser's DevTools → Network tab → reload, and look at the
+  `fetch`/`XHR` requests a JavaScript app makes.
+- **JSON:** objects `{}`, lists `[]`, strings, numbers, `true`/`false`/`null`.
+  `response.json()` turns it into Python dicts and lists.
+- **Documented vs undocumented:**
+  - A documented API is a promise.
+  - An undocumented one can change at any time.
+  - Defences: parse it in one function; check that the fields exist; turn surprises into an
+    `error` instead of a guess; add a network test that warns when the shape changes.
+- **Choosing the right record:** the API lists every version of a file. We keep only the one
+  with `isCurrent: true`, `isArchived: false`, ending in `.pdf`. If there isn't exactly one,
+  that's an error, not a pick.
+
+**Example (from `src/datasets/ufgs.py`):**
+```python
+current = [m for m in data["mediaFiles"]
+           if m.get("isCurrent") and not m.get("isArchived")
+           and m["fileName"].lower().endswith(".pdf")]
+if len(current) != 1: ...   # no_pdf or error: never guess
+```
+
+**Where:** `src/datasets/ufgs.py` (`parse_api`), `tests/fixtures/ufgs_api_03-30-00.json`
+(a real, trimmed answer).
+
+**Study:** https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON ·
+https://developer.chrome.com/docs/devtools/network ·
+https://requests.readthedocs.io/en/latest/user/quickstart/#json-response-content
 
 ---
 

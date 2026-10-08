@@ -14,7 +14,7 @@ memory. Download it, inspect it, then write down what you saw.
 
 | # | Dataset | Source | Goes to | Used by | Status |
 |---|---|---|---|---|---|
-| 1 | UFGS specifications (PDF), divisions 01, 03, 05, 22, 23, 26, 33 | https://www.wbdg.org/dod/ufgs | `data/raw/ufgs/` | A, B | spec approved ([spec](../../specs/2026-10-07-ufgs-download/spec.md)) |
+| 1 | UFGS specifications (PDF), active sections of divisions 01, 03, 05, 22, 23, 26, 33, 40, 41, 42, 43, 44, 46 | https://www.wbdg.org/dod/ufgs | `data/raw/ufgs/` | A, B | done 2026-10-08: 271 PDFs, 37.6 MB ([spec](../../specs/2026-10-07-ufgs-download/spec.md)) |
 | 2 | Ghent OR&S real project database (EVM data) | https://www.projectmanagement.ugent.be/research/data | `data/raw/project_controls/ghent/` | D | not started; may need a form, inspect the format first |
 | 3 | PID2Graph (real P&IDs with annotations) | https://zenodo.org/records/14803338 | `data/raw/pid/pid2graph/` | C | not started |
 | 4 | Dataset-P&ID (synthetic P&IDs) | link in arXiv paper 2109.03794 | `data/raw/pid/dataset_pid/` | C | not started |
@@ -24,19 +24,25 @@ UFGS comes first: it feeds Module A, the first core module (Phase 3).
 
 ---
 
-## UFGS: what we know (checked 2026-10-07)
+## UFGS: what we know (checked 2026-10-08)
 
-- The WBDG UFGS page is a JavaScript app; the section list comes from the site's sitemap
-  (`/api/sitemap/documents.xml`), which lists 599 sections in our 7 divisions.
-- The PDFs are at `https://www.wbdg.org/FFC/DOD/UFGS/UFGS 03 30 00.pdf` (spaces URL-encoded).
-  Most section names follow a simple rule, but some return 403. The downloader records those as
-  `not_found` instead of guessing.
-- `robots.txt` allows crawling (only `/auth/` is disallowed). We still wait 1 s between requests.
+- The WBDG UFGS page is a JavaScript app. The section list comes from the site's sitemap
+  (`/api/sitemap/documents.xml`), which lists **current and retired** sections: 705 in our 13
+  divisions.
+- For each section, the downloader asks WBDG's API (`/api/documents/ufgs-<id>`, undocumented)
+  for its status (`ACTIVE` or `RETIRED_SUPERSEDED`) and the exact link of its current PDF. Only
+  ACTIVE sections are downloaded.
+- Result on 2026-10-08:
+  - **271 active** sections downloaded, **434 retired**, 0 errors, 37.6 MB;
+  - division 42 (process heating/cooling) has no active section at all.
+  - Full counts are in DEVLOG Step 14.
+- `robots.txt` allows crawling; only `/auth/` is disallowed. We still wait 1 s between requests.
 
 Run it (inside the container):
 ```bash
-docker compose exec dev uv run python -m src.datasets.ufgs --divisions 01 03 --dry-run
-docker compose exec dev uv run python -m src.datasets.ufgs --divisions 01 03 05 22 23 26 33
+docker compose exec dev uv run python -m src.datasets.ufgs --dry-run     # list, no download
+docker compose exec dev uv run python -m src.datasets.ufgs               # all 13 divisions
+docker compose exec dev uv run python -m src.datasets.ufgs --divisions 03 --limit 5
 ```
 
 ---
@@ -62,6 +68,7 @@ versions go to `data/processed/`.
 | HTTP status codes, `requests` | 1.8 HTTP & requests |
 | Sitemaps, robots.txt, polite downloading, retries with backoff | 1.9 Web data acquisition |
 | Atomic writes, resumable downloads, checksums (SHA-256), provenance | 1.10 Data integrity |
+| Web page vs API, JSON, undocumented APIs | 1.11 Web page vs API |
 | DataFrame validation (`pandera`) | added with the Ghent loader |
 
 ---

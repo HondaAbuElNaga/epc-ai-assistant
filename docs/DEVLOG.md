@@ -25,6 +25,7 @@ New steps are added at the bottom. Technologies mentioned here are explained in
 | 11 | 2026-10-06 | Strategy | Claude first, then local models + security for confidential data |
 | 12 | 2026-10-07 | Stage 0 | Provider-agnostic LLM interface + data classification guard |
 | 13 | 2026-10-07 | Stage 0 | API key and first real Claude call (Phase 0 done) |
+| 14 | 2026-10-08 | Stage 2 | UFGS downloader: 271 active specification PDFs (13 divisions) |
 
 ---
 
@@ -463,6 +464,105 @@ docker compose exec dev uv run pytest
    equal. Fix: `docker compose up -d --force-recreate`; the values then matched and the test passed.
 
 **Learn:** LEARNING_GUIDE 1.4 Docker Compose (`env_file` gotcha), 9.3 secrets management.
+
+---
+
+## Step 14: UFGS downloader: 271 active specification PDFs (13 divisions)
+
+**What:** a downloader for UFGS (Unified Facilities Guide Specifications) from WBDG. It finds
+every section in the sitemap, asks WBDG's API whether each one is still active and where its
+current PDF is, downloads only active sections, and writes a manifest. It was built in two
+versions:
+- **v1** (commit `f0d7d8b`): built each PDF link from the section number.
+- **v2:** asks the API first and keeps active sections only.
+
+**Why:** UFGS is the real-specification corpus for Module A (spec RAG) and the labeled data for
+Module B (the division is the class). The scope is the 7 building divisions plus the process
+divisions 40–46, chosen by the owner on 2026-10-08 because EPC work is mostly industrial and
+process plants.
+
+**How:**
+```bash
+docker compose exec dev uv run python -m src.datasets.ufgs --dry-run     # 705 sections listed
+docker compose exec dev uv run python -m src.datasets.ufgs --limit 5 --out /tmp/ufgs_trial
+docker compose exec dev uv run python -m src.datasets.ufgs               # full run, 15 min 38 s
+docker compose exec dev uv run python -m src.datasets.ufgs               # re-run: nothing new
+```
+For each section:
+1. `GET /api/documents/ufgs-<id>` →
+2. if `status` is `ACTIVE`, take the one media file with `isCurrent: true`, `isArchived: false`,
+   `.pdf` →
+3. stream it to `.part`, check `%PDF`, compute SHA-256, rename →
+4. write a manifest entry.
+
+At the end, PDFs of retired sections left over from v1 are deleted.
+
+**Files:**
+| File | Change |
+|---|---|
+| `src/common/http.py` | `PoliteClient`: honest User-Agent, 1 s delay, retries with backoff on 429/5xx, `Retry-After` |
+| `src/datasets/ufgs.py` | Sitemap → API check → download → manifest → retired cleanup; CLI |
+| `tests/test_ufgs_download.py` | 30 offline tests (fake session) + 2 `network` tests (real API shape, real download) |
+| `tests/fixtures/ufgs_sitemap_sample.xml`, `ufgs_api_03-30-00.json` | Sitemap sample; real API answer (trimmed) |
+| `pyproject.toml` | `network` marker, not run by default (`addopts = "-m 'not network'"`) |
+| `specs/2026-10-07-ufgs-download/` | v1 spec + v2 update (approved), tasks |
+| `docs/stages/stage_02_data.md` | Stage 2 guide (new) |
+| `docs/LEARNING_GUIDE.md` | 1.9 Web data acquisition, 1.10 Data integrity, 1.11 Web page vs API |
+| `PROJECT_PLAN.md`, `product/roadmap.md` | Script location, 13 divisions, item ticked |
+| `data/raw/ufgs/<DD>/*.pdf`, `manifest.json` | Data, local only (git-ignored) |
+
+**Verify (real results, 2026-10-08):**
+
+| Div | Name | Sitemap | Active (on disk) | Retired |
+|---|---|---|---|---|
+| 01 | General Requirements | 83 | 33 | 50 |
+| 03 | Concrete | 63 | 23 | 40 |
+| 05 | Metals | 39 | 17 | 22 |
+| 22 | Plumbing | 42 | 11 | 31 |
+| 23 | HVAC | 150 | 52 | 98 |
+| 26 | Electrical | 102 | 45 | 57 |
+| 33 | Utilities | 120 | 59 | 61 |
+| 40 | Process Interconnections | 11 | 4 | 7 |
+| 41 | Material Processing and Handling Equipment | 24 | 8 | 16 |
+| 42 | Process Heating, Cooling, and Drying Equipment | 7 | **0** | 7 |
+| 43 | Process Gas and Liquid Handling, Purification, and Storage | 17 | 2 | 15 |
+| 44 | Pollution and Waste Control Equipment | 25 | 2 | 23 |
+| 46 | Water and Wastewater Equipment | 22 | 15 | 7 |
+| | **Total** | **705** | **271** | **434** |
+
+- Full run: downloaded 32, skipped 239 (already on disk from v1), retired 434, no_pdf 0,
+  not_found 0, **error 0**, in 15 min 38 s.
+- 21 retired PDFs from v1 were removed. Check: v1 had 260 files, 239 + 21 = 260.
+- On disk: **271 PDFs, 37.6 MB**.
+  - Every file belongs to an ACTIVE section; every active section has its file.
+  - No `.part`/`.tmp` left.
+  - All 271 PDF links come from `/FFC/DOD/UFGS/`, none from the archive.
+- Publish years of the active sections range from 2006 to 2026; 86 of them are from 2025–2026.
+- Re-run: RERUN_RESULT
+- `pytest`: 53 passed, 2 deselected. `pytest -m network`: 2 passed. `ruff check` and
+  `ruff format`: clean.
+
+**Problems & fixes:**
+1. **v1: 339 of 599 sections `not_found` (S3 403).**
+   - A sample of 30 showed they were all `RETIRED_SUPERSEDED` with no files: the sitemap lists
+     retired sections too.
+   - Some PDFs v1 *did* download were retired sections whose old file is still in the bucket.
+   - Fix (v2): ask the API for the status and the exact current file; never build or guess a
+     link.
+2. **The API lists every version of a file** (current, `UFGS_ARCHIVES/`, `documents/…`), plus a
+   `.zip` with the editable source. Fix: keep only `isCurrent && !isArchived && .pdf`. If that
+   isn't exactly one file, record `error`.
+3. **In chat I first said option B adds 112 sections.** That was wrong. It's 106; the 112
+   wrongly included division 48. Corrected in the spec before approval.
+4. **The background run was reported as "killed" (exit code -1)**, both in v1 and v2. The
+   process inside the container kept running and finished; the log ends with the summary. Check
+   the log, not the exit code of the wrapper.
+
+**Learn:**
+- LEARNING_GUIDE 1.9 Web data acquisition;
+- 1.10 Data integrity;
+- 1.11 Web page vs API (JSON);
+- 8.1 pytest (fakes instead of mocks, markers).
 
 ---
 
