@@ -17,6 +17,11 @@ Then tell the user where the project is and what the next step is, before doing 
   `product/roadmap.md` (order and status). `PROJECT_PLAN.md` is the detailed reference.
 - Before coding any roadmap feature: write `specs/<YYYY-MM-DD>-<feature>/spec.md` and `tasks.md`
   (templates in `specs/README.md`) and get them approved.
+- Specs are **plain Markdown** only (no spec tooling or generators).
+- Every new spec gets its **own git branch**, created from an up-to-date `main` and named after
+  the spec folder: `spec/<YYYY-MM-DD>-<feature>`. The spec, its tasks, the code and the docs for
+  that feature are all committed on that branch, then merged into `main` with a pull request
+  when the feature is done.
 - Only use technologies listed in `product/tech-stack.md`; update it first if a new one is needed.
 - After a feature: tick it in `product/roadmap.md` and update "Current position".
 

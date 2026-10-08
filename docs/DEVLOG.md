@@ -26,6 +26,7 @@ New steps are added at the bottom. Technologies mentioned here are explained in
 | 12 | 2026-10-07 | Stage 0 | Provider-agnostic LLM interface + data classification guard |
 | 13 | 2026-10-07 | Stage 0 | API key and first real Claude call (Phase 0 done) |
 | 14 | 2026-10-08 | Stage 2 | UFGS downloader: 271 active specification PDFs (13 divisions) |
+| 15 | 2026-10-08 | Process | One git branch per spec, specs in plain Markdown |
 
 ---
 
@@ -563,6 +564,41 @@ At the end, PDFs of retired sections left over from v1 are deleted.
 - 1.10 Data integrity;
 - 1.11 Web page vs API (JSON);
 - 8.1 pytest (fakes instead of mocks, markers).
+
+---
+
+## Step 15: One git branch per spec, specs in plain Markdown
+
+**What:** A new rule for spec-driven development: every new roadmap spec is written in plain
+Markdown and lives on its own git branch, `spec/<YYYY-MM-DD>-<feature>`.
+
+**Why:**
+- `main` only receives finished features, so it always works.
+- Each feature's spec, code, tests and docs sit together in one branch and one pull request,
+  which is easy to review and easy to undo.
+- Plain Markdown keeps specs readable on GitHub and needs no extra tools.
+
+**How:**
+```bash
+git switch main && git pull
+git switch -c spec/2026-10-08-ghent-project-db
+# write specs/2026-10-08-ghent-project-db/spec.md and tasks.md, get approval, build
+git push -u origin spec/2026-10-08-ghent-project-db
+# open a pull request on GitHub and merge into main when the feature is done
+```
+
+**Files:**
+
+| File | Change |
+|---|---|
+| `CLAUDE.md` | SDD section: plain Markdown + one branch per spec |
+| `specs/README.md` | Workflow steps 0 and 6 (branch, pull request) and a Rules section |
+
+**Verify:** `git branch` shows one `spec/...` branch per spec in progress.
+
+**Problems & fixes:** none.
+
+**Learn:** git branches, feature-branch workflow, pull requests.
 
 ---
 
