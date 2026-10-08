@@ -28,9 +28,12 @@ package = false
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+# Network tests are opt-in: `pytest -m network` (a later -m on the command line wins)
+addopts = "-m 'not network'"
 markers = [
     "eval: LLM evaluation tests (slow, cost API credits)",
     "llm: tests that call the real Claude API",
+    "network: tests that download from real websites (opt-in)",
 ]
 
 [tool.ruff]

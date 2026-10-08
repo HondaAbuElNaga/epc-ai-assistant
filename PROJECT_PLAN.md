@@ -233,7 +233,7 @@ Assumes 3–4 hours a day.
 | OSHA Severe Injury Reports | osha.gov, Severe Injury Reports | `data/raw/osha/` | B (bonus) |
 
 **Process:**
-1. Write `scripts/download_ufgs.py`: fetch the section list, download the PDFs (start with divisions 01, 03, 05, 22, 23, 26, 33), use polite request delays, and skip files that already exist.
+1. Write `src/datasets/ufgs.py` (run: `python -m src.datasets.ufgs`): read the section list from the WBDG sitemap, download the PDFs (divisions 01, 03, 05, 22, 23, 26, 33), use polite request delays, skip files that already exist, and write `data/raw/ufgs/manifest.json`. Spec: `specs/2026-10-07-ufgs-download/`.
 2. Download the Ghent database manually (it may require a form) and unzip it. Then **inspect the file format before writing any code**.
 3. Download PID2Graph from Zenodo.
 4. Write `data/DATA_CATALOG.md`: for each dataset record the source URL, download date, license, file count, size and known issues.

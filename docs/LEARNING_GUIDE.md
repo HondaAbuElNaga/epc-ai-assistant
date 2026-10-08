@@ -21,7 +21,7 @@ For each one:
 |---|---|
 | Stage 0 (setup) | 8.7 Spec-driven development · 1.1 Python · 1.2 Git & GitHub · 1.3 Docker · 1.4 Docker Compose · 1.5 uv · 8.1 pytest · 8.4 ruff |
 | Stage 1 (EPC) | 2.1 EPC basics · 2.2 Earned Value Management |
-| Stage 2 (data) | 1.6 pandas & numpy · 1.7 Jupyter · 1.8 HTTP & requests · 6.1 Data validation |
+| Stage 2 (data) | 1.6 pandas & numpy · 1.7 Jupyter · 1.8 HTTP & requests · 1.9 Web data acquisition · 1.10 Data integrity · 6.1 Data validation |
 | Stage 3 (RAG) | Part 3 (all of 3.1 → 3.12) |
 | Stage 4 (documents) | 4.1 → 4.6 · 3.5 Structured output · 3.6 Pydantic |
 | Stage 5 (project controls) | 2.2 EVM · 4.4 Tree models / XGBoost · 4.5 Cross-validation · 4.6 Regression metrics · 6.1 pandera |
@@ -244,6 +244,85 @@ time.sleep(1)   # be polite to the server
 ```
 
 **Study:** https://requests.readthedocs.io
+
+---
+
+## 1.9 Web data acquisition (sitemaps, robots.txt, polite downloading)
+
+**What:** getting files from a website reliably and respectfully: find the list of pages, follow
+the site's rules, and survive temporary errors.
+
+**Why here:** the UFGS page is a JavaScript app, so its HTML contains no links. The site's
+**sitemap** (an XML list of every page, made for search engines) gave us the section list instead.
+
+**Key concepts:**
+- **robots.txt:** the site's crawling rules (`Allow`, `Disallow`, optional `Crawl-delay`).
+  Read it first.
+- **Sitemap:** `<urlset><url><loc>…</loc></url></urlset>`. A sitemap index points to more
+  sitemaps.
+- **Polite downloading:**
+  - an honest User-Agent (who you are, how to reach you);
+  - a delay between requests;
+  - one `Session` (reuses connections);
+  - timeouts.
+- **Status codes:**
+  - 200 OK;
+  - 403/404: the file isn't there, so don't retry. S3 answers 403 for a missing file when
+    listing is not allowed;
+  - 429 (too many requests) and 5xx (server problem): temporary, so retry.
+- **Exponential backoff:** wait 2 s, 4 s, 8 s… between retries. Honour the `Retry-After` header
+  when the server sends it.
+- **Streaming:** `get(url, stream=True)` + `iter_content()`, so a large file never sits fully in
+  memory.
+
+**Example (from `src/common/http.py`):**
+```python
+client = PoliteClient(delay=1.0, max_retries=3, backoff=2.0)
+response = client.get(url, stream=True)   # waits, retries 429/5xx, returns final response
+```
+
+**Where:** `src/common/http.py` (reused by every downloader), `src/datasets/ufgs.py`.
+
+**Study:** https://developers.google.com/search/docs/crawling-indexing/robots/intro ·
+https://www.sitemaps.org/protocol.html ·
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+
+---
+
+## 1.10 Data integrity (atomic writes, resume, checksums, provenance)
+
+**What:** making sure every data file is complete, unchanged, and traceable to its source.
+
+**Why here:** a 599-file download will sometimes be interrupted. Later modules (RAG, evaluation)
+are only trustworthy if we know exactly which files they were built on.
+
+**Key concepts:**
+- **Atomic write:** write to `file.part`, then `rename` to the final name. A crash leaves at most
+  a `.part` file, never a half-written PDF under the real name.
+- **Validation:** check the content, not just the status code. A real PDF starts with `%PDF`; an
+  error page does not.
+- **Resume (idempotency):** running twice gives the same result. Existing valid files are
+  skipped.
+- **Checksum (SHA-256):** a 64-character fingerprint of the bytes. If one byte changes, the
+  fingerprint changes.
+- **Manifest / provenance:** one record per file: source URL, time, size, hash, status. This
+  record is what you cite in `DATA_CATALOG.md` and in a report.
+
+**Example:**
+```python
+digest = hashlib.sha256()
+with part.open("wb") as f:
+    for chunk in response.iter_content(chunk_size=65536):
+        digest.update(chunk)
+        f.write(chunk)
+part.replace(path)          # atomic on the same disk
+print(digest.hexdigest())
+```
+
+**Where:** `src/datasets/ufgs.py` (`download_section`, `manifest.json`).
+
+**Study:** https://docs.python.org/3/library/hashlib.html ·
+https://docs.python.org/3/library/pathlib.html#pathlib.Path.replace
 
 ---
 
