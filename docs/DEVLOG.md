@@ -539,7 +539,7 @@ At the end, PDFs of retired sections left over from v1 are deleted.
   - No `.part`/`.tmp` left.
   - All 271 PDF links come from `/FFC/DOD/UFGS/`, none from the archive.
 - Publish years of the active sections range from 2006 to 2026; 86 of them are from 2025–2026.
-- Re-run: RERUN_RESULT
+- Re-run: downloaded 0, skipped 271, retired 434, error 0, removed 0 (14 min 39 s): resume works.
 - `pytest`: 53 passed, 2 deselected. `pytest -m network`: 2 passed. `ruff check` and
   `ruff format`: clean.
 

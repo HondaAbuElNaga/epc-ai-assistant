@@ -77,7 +77,7 @@ downloaded are also retired sections: their old PDF is still in the bucket.
   uses it.
 
 **v2 acceptance criteria (added to those below):**
-- [ ] Offline tests:
+- [x] Offline tests:
   - an ACTIVE section downloads the API's `fileUrl`, not a built URL;
   - a RETIRED section becomes `retired` and makes no PDF request;
   - ACTIVE with no current PDF becomes `no_pdf`;
@@ -85,10 +85,10 @@ downloaded are also retired sections: their old PDF is still in the bucket.
   - API 404 becomes `not_found`;
   - a retired file on disk is deleted, and `--keep-retired` keeps it;
   - an existing ACTIVE PDF is `skipped`.
-- [ ] Real run for 13 divisions: every in-scope sitemap section is in the manifest; 0 `error`
+- [x] Real run for 13 divisions: every in-scope sitemap section is in the manifest; 0 `error`
       after a re-run; a second run downloads nothing.
-- [ ] No PDF on disk belongs to a section whose status isn't ACTIVE.
-- [ ] Real counts are reported in the DEVLOG exactly as they come out.
+- [x] No PDF on disk belongs to a section whose status isn't ACTIVE.
+- [x] Real counts are reported in the DEVLOG exactly as they come out.
 
 **Estimate:** 705 API calls plus about one PDF request per active section at at least 1 s
 each, so roughly 15–25 minutes. This is an estimate; the real time goes in the DEVLOG.
@@ -192,7 +192,7 @@ each, so roughly 15–25 minutes. This is an estimate; the real time goes in the
 
 ## Acceptance criteria
 
-- [ ] Unit tests with **no network**, using a fake session:
+- [x] Unit tests with **no network**, using a fake session:
   - sitemap parsing and division filtering;
   - slug → name for the 4 verified patterns;
   - a 403 is recorded as `not_found` without retrying;
@@ -201,15 +201,15 @@ each, so roughly 15–25 minutes. This is an estimate; the real time goes in the
   - existing files are skipped, and `--force` re-downloads them;
   - the manifest contains every section;
   - the delay is applied between requests.
-- [ ] Network test (marker `network`, not run by default): downloads `UFGS 01 33 00`, which was
+- [x] Network test (marker `network`, not run by default): downloads `UFGS 01 33 00`, which was
       verified above, and checks the `%PDF` header and SHA-256 in the manifest.
-- [ ] Real run for the 7 divisions finishes. Every section in today's sitemap for those divisions
+- [x] Real run for the 7 divisions finishes. Every section in today's sitemap for those divisions
       appears in the manifest as `downloaded` or `not_found`, with **0 `error`** after a re-run.
-- [ ] Re-running immediately downloads nothing (every file is `skipped`).
-- [ ] The real counts (downloaded / not_found per division, total size) are reported exactly in
+- [x] Re-running immediately downloads nothing (every file is `skipped`).
+- [x] The real counts (downloaded / not_found per division, total size) are reported exactly in
       the DEVLOG.
-- [ ] `ruff check`, `ruff format` and `pytest` all clean in the container.
-- [ ] Docs: DEVLOG step, LEARNING_GUIDE (sitemaps, polite scraping, retries/backoff, atomic
+- [x] `ruff check`, `ruff format` and `pytest` all clean in the container.
+- [x] Docs: DEVLOG step, LEARNING_GUIDE (sitemaps, polite scraping, retries/backoff, atomic
       writes, SHA-256), Stage 2 guide, roadmap tick, PROJECT_PLAN updated (the script is now
       `src/datasets/ufgs.py`, not `scripts/download_ufgs.py`).
 

@@ -75,7 +75,7 @@ versions go to `data/processed/`.
 
 ## Done When
 
-- [ ] UFGS downloaded, manifest complete, counts recorded in the DEVLOG
+- [x] UFGS downloaded, manifest complete, counts recorded in the DEVLOG
 - [ ] Ghent database downloaded, format inspected, loader written
 - [ ] PID2Graph + Dataset-P&ID downloaded
 - [ ] `data/DATA_CATALOG.md` + `data/checksums.json`

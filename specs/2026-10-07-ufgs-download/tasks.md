@@ -13,19 +13,19 @@ Spec: [spec.md](spec.md) · All commands inside the container (`docker compose e
 - [x] 7. `uv run ruff check . && uv run ruff format . && uv run pytest`
 - [x] 8. `--dry-run`, then `--limit 5`, then the full run for the 7 divisions; re-run to confirm
          resume (0 new downloads)
-- [ ] 9. Docs: DEVLOG step with the real counts, LEARNING_GUIDE sections, roadmap tick,
+- [x] 9. Docs: DEVLOG step with the real counts, LEARNING_GUIDE sections, roadmap tick,
          PROJECT_PLAN (script location), spec status → done
 
 ## v2 (spec section "v2 update")
 
 - [x] 10. Commit v1 as a checkpoint (`f0d7d8b`)
-- [ ] 11. Fixtures: API JSON samples (active with archived versions, retired, active without PDF,
+- [x] 11. Fixtures: API JSON samples (active with archived versions, retired, active without PDF,
           two current PDFs)
-- [ ] 12. Tests first (fail): API parsing, PDF picking, new statuses, skip-after-API-check,
+- [x] 12. Tests first (fail): API parsing, PDF picking, new statuses, skip-after-API-check,
           retired-file cleanup, `--keep-retired`, network test for the API
-- [ ] 13. Implement in `src/datasets/ufgs.py`; `DEFAULT_DIVISIONS` → 13 divisions
-- [ ] 14. ruff check, ruff format, pytest
-- [ ] 15. `--dry-run`, `--limit 5`, full run (13 divisions), re-run (0 new downloads)
-- [ ] 16. Verify no non-ACTIVE PDF on disk; count files and size
-- [ ] 17. Docs: DEVLOG step (real counts), LEARNING_GUIDE (web page vs API, JSON), Stage 2 guide,
+- [x] 13. Implement in `src/datasets/ufgs.py`; `DEFAULT_DIVISIONS` → 13 divisions
+- [x] 14. ruff check, ruff format, pytest
+- [x] 15. `--dry-run`, `--limit 5`, full run (13 divisions), re-run (0 new downloads)
+- [x] 16. Verify no non-ACTIVE PDF on disk; count files and size
+- [x] 17. Docs: DEVLOG step (real counts), LEARNING_GUIDE (web page vs API, JSON), Stage 2 guide,
           roadmap item text + tick, PROJECT_PLAN, spec status → done; commit and push

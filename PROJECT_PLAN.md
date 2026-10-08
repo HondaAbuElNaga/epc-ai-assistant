@@ -715,7 +715,7 @@ one risk (data leaving to an API).
 - [x] `docs/03_evm_formulas.md`
 
 **Stage 2: Data**
-- [ ] UFGS downloaded
+- [x] UFGS downloaded (2026-10-08: 271 active PDFs, 13 divisions)
 - [ ] Ghent database downloaded and inspected
 - [ ] PID2Graph and Dataset-P&ID downloaded
 - [ ] OSHA data downloaded
