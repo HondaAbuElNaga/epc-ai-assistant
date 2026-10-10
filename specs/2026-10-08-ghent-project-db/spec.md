@@ -132,8 +132,9 @@ GitHub API for the latest release.
 ## Table columns (task 4, 2026-10-10; sources in format_notes.md §4–5)
 
 Missing values (`N/A`, `-`, empty, unparseable text) become `NaN`/`NaT`/`None`. Money is in
-euro (the `Overview` sheet says BAC is in euro), stored as `float`. Every unparseable value
-also adds a row to `issues`.
+euro (the `Overview` sheet says BAC is in euro), stored as `float`. Unparseable text (not the
+normal `N/A` / `-` markers) adds a row to `issues`, as do: missing or non-positive BAC,
+duplicate activity IDs, and a missing ID 0 row.
 
 ### `projects` (231 rows, from the `DSLIB` sheet rows 4–234 + the group check)
 
@@ -216,4 +217,4 @@ not loaded; forecasting is a later roadmap item.
 |---|---|---|
 | `project_id` | str | |
 | `table` | str | `projects` / `activities` / `tracking` |
-| `problem` | str | e.g. `duplicate activity_id 12`, `BAC not a number: '-'`, `no ID 0 row` |
+| `problem` | str | e.g. `duplicate activity_id 12`, `BAC missing`, `no ID 0 row` |

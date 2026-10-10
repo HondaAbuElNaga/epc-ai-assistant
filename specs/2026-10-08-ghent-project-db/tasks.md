@@ -13,8 +13,8 @@ container (`docker compose exec dev ...`).
           folders A/B/C (copies) + `project_groups.csv` (spec "Decisions")
 - [x] 4. Update the spec: exact columns of `projects`, `activities`, `tracking`; add `openpyxl`
          to `product/tech-stack.md` + `uv add` only if the files are Excel
-- [ ] 5. Build a tiny fixture in `tests/fixtures/` from the real format
-- [ ] 6. Write `tests/test_ghent_loader.py` (tables, snake_case, types, missing-column error),
+- [x] 5. Build a tiny fixture in `tests/fixtures/` from the real format
+- [x] 6. Write `tests/test_ghent_loader.py` (tables, snake_case, types, missing-column error),
          see it fail
 - [ ] 7. Implement `src/datasets/ghent.py` (`load_ghent()`, `GhentData`)
 - [ ] 8. Run on the real data: project count, baseline + tracking per project, BAC > 0;
