@@ -1,7 +1,7 @@
 # Spec: Ghent project database (download, inspect, loader)
 
 **Roadmap item:** Phase 2, "Ghent project database: download, inspect format, loader"
-**Status:** draft
+**Status:** approved (2026-10-10)
 **Branch:** `spec/2026-10-08-ghent-project-db`
 **Related:** PROJECT_PLAN Stage 2 (download) and Stage 5 (Module D, project controls)
 
