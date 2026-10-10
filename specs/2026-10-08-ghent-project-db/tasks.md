@@ -3,7 +3,8 @@
 Spec: [spec.md](spec.md) · Branch: `spec/2026-10-08-ghent-project-db` · All commands inside the
 container (`docker compose exec dev ...`).
 
-- [ ] 1. Open the download page; answer the open questions in the spec (form? which dataset?)
+- [x] 1. Open the download page; answer the open questions in the spec (form? which dataset?)
+         Done 2026-10-10: no form; dataset = DSLIB v3.4 (GitHub release zip)
 - [ ] 2. Download into `data/raw/project_controls/ghent/`; record file list, sizes, date
 - [ ] 3. Inspect every file; write `format_notes.md` (files, sheets, columns, units, examples)
 - [ ] 4. Update the spec: exact columns of `projects`, `activities`, `tracking`; add `openpyxl`
