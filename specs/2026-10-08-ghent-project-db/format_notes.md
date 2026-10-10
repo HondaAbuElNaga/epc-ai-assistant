@@ -2,6 +2,34 @@
 
 Everything here was verified by opening or listing the files. Nothing is guessed.
 
+## In simple words
+
+- We have **231 real projects** (buildings, bridges, software, events, …).
+- Each project has an **Excel file** with:
+  - **the plan**: the list of activities with duration and cost (sheet `Baseline Schedule`);
+  - sometimes **progress checks**: every few weeks someone measured the project
+    (sheet `Tracking Overview`).
+- A progress check has three numbers:
+  - **PV** (Planned Value): the work we *planned* to finish by that date;
+  - **EV** (Earned Value): the work we *really* finished;
+  - **AC** (Actual Cost): the money we *really* spent.
+  - EV < PV → the project is late. AC > EV → it is over budget.
+- The projects fall into **three groups**:
+
+  | Group | Projects | What it has | Folder |
+  |---|---|---|---|
+  | A | 117 | plan + progress checks (PV, EV, AC) ✅ | `groups/A_tracking_ready/` |
+  | B | 41 | plan + raw notes only, no PV/EV ⚠️ | `groups/B_raw_progress_only/` |
+  | C | 73 | plan only ❌ | `groups/C_plan_only/` |
+
+  (Folders under `data/processed/project_controls/ghent/`; the list is in
+  [project_groups.csv](project_groups.csv).)
+- One big **summary file** (`DSLIB_Analysis_Sheet.xlsx`) has one row per project.
+- The data is a bit messy (missing values written as `N/A` or `-`, money written as text,
+  durations like `3d 2h`), so the loader cleans it.
+
+The sections below are the technical details.
+
 ## 1. Download (task 2, 2026-10-10)
 
 | Item | Value |

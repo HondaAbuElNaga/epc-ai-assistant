@@ -109,3 +109,20 @@ GitHub API for the latest release.
      **made-up values**, not copied rows.
    - Format consequence: the data is Excel, so `openpyxl` will very likely be needed (task 4
      still confirms this after inspection, and Excel engines are added only then).
+
+## Decisions (2026-10-10, after inspection; see format_notes.md §5.4)
+1. **Three project groups**, by the tracking data in each project workbook:
+   - **A, tracking ready (117):** `Tracking Overview` has at least one row (PV/EV/AC per period).
+   - **B, raw progress only (41):** no `Tracking Overview` rows, but `TPn` sheets with per-activity
+     actual cost and % complete. No PV/EV.
+   - **C, plan only (73):** no tracking at all.
+   The list is in `project_groups.csv` (versioned). The loader adds a `group` column to `projects`.
+2. **Option 1 chosen by the owner:** `tracking` is loaded from `Tracking Overview` only (group A).
+   Group B projects are listed, not loaded into `tracking`; computing their PV/EV belongs to the
+   later EVM roadmap item.
+3. **Group folders (owner request):** copies of each project's three files (Excel, Project Card,
+   ProTrack) sorted into `data/processed/project_controls/ghent/groups/` →
+   `A_tracking_ready/`, `B_raw_progress_only/`, `C_plan_only/`, one subfolder per project
+   (git-ignored). The originals in `data/raw/` stay unchanged.
+4. Acceptance criterion "every project has at least one tracking period" is expected to list the
+   114 projects of groups B and C; they are kept in `projects` and `activities`.

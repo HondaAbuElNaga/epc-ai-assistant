@@ -9,6 +9,8 @@ container (`docker compose exec dev ...`).
          Done 2026-10-10: DSLIB3.4.zip, 231 projects; see format_notes.md §1–3, file_list.csv
 - [x] 3. Inspect every file; write `format_notes.md` (files, sheets, columns, units, examples)
          Done 2026-10-10; openpyxl added (tech-stack + uv) to read the .xlsx files
+- [x] 3b. Owner decision: option 1 (tracking from group A only); projects sorted into group
+          folders A/B/C (copies) + `project_groups.csv` (spec "Decisions")
 - [ ] 4. Update the spec: exact columns of `projects`, `activities`, `tracking`; add `openpyxl`
          to `product/tech-stack.md` + `uv add` only if the files are Excel
 - [ ] 5. Build a tiny fixture in `tests/fixtures/` from the real format
