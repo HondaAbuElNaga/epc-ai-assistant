@@ -16,7 +16,7 @@ container (`docker compose exec dev ...`).
 - [x] 5. Build a tiny fixture in `tests/fixtures/` from the real format
 - [x] 6. Write `tests/test_ghent_loader.py` (tables, snake_case, types, missing-column error),
          see it fail
-- [ ] 7. Implement `src/datasets/ghent.py` (`load_ghent()`, `GhentData`)
+- [x] 7. Implement `src/datasets/ghent.py` (`load_ghent()`, `GhentData`)
 - [ ] 8. Run on the real data: project count, baseline + tracking per project, BAC > 0;
          list any projects that fail
 - [ ] 9. `uv run ruff check . && uv run ruff format . && uv run pytest`
