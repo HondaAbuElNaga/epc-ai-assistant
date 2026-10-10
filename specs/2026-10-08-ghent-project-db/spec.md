@@ -51,15 +51,17 @@ invented numbers.
     format (a few rows, no full dataset in git)
 
 ## Acceptance criteria
-- [ ] Raw files are on disk; file list, sizes and download date are recorded.
-- [ ] `format_notes.md` describes every file and column found, verified by opening them.
-- [ ] `load_ghent()` returns `projects`, `activities`, `tracking` for the real data.
-- [ ] Project count from the loader matches the count in the DSLIB analysis sheet (the sources
+- [x] Raw files are on disk; file list, sizes and download date are recorded.
+- [x] `format_notes.md` describes every file and column found, verified by opening them.
+- [x] `load_ghent()` returns `projects`, `activities`, `tracking` for the real data.
+- [x] Project count from the loader matches the count in the DSLIB analysis sheet (the sources
       say 231; PROJECT_PLAN's 133 gets corrected).
-- [ ] Every project has a baseline and at least one tracking period, and BAC > 0
-      (projects that fail are listed, not silently dropped).
-- [ ] Unit tests on the fixture pass; a test for the missing-column error passes.
-- [ ] `ruff check`, `ruff format`, `pytest` are clean.
+- [x] Every project has a baseline and at least one tracking period, and BAC > 0
+      (projects that fail are listed, not silently dropped). Checked (see "Results"): all 231
+      have a baseline; 114 have no tracking (groups B, C) and 31 have no BAC; all are listed,
+      none dropped.
+- [x] Unit tests on the fixture pass; a test for the missing-column error passes.
+- [x] `ruff check`, `ruff format`, `pytest` are clean.
 
 ## Technical approach
 - Libraries: `pandas` (in tech-stack). If the files are `.xlsx`, `openpyxl` is needed as the
@@ -153,7 +155,7 @@ duplicate activity IDs, and a missing ID 0 row.
 | `planned_duration_days` | float | L `PD (days)` | |
 | `bac` | float | M `BAC` | Euro strings like `€743 676` parsed; `-` → NaN |
 | `has_resources` | bool | N `Resources` | `Y`/`N`; other → None |
-| `real_duration` | float | CE `Real Duration` | Unit not stated in `Overview`; checked in task 8 |
+| `real_duration` | float | CE `Real Duration` | Same unit as PD (days), probably working days; see Results |
 | `real_cost` | float | CF `Real Cost` | Euro strings parsed |
 | `duration_deviation` | float | R `Early/late` | Fraction (0.12 = 12 % late) |
 | `cost_deviation` | float | S `Under/over budget` | Fraction; sign as in source (positive = under budget per `Overview`) |
@@ -218,3 +220,41 @@ not loaded; forecasting is a later roadmap item.
 | `project_id` | str | |
 | `table` | str | `projects` / `activities` / `tracking` |
 | `problem` | str | e.g. `duplicate activity_id 12`, `BAC missing`, `no ID 0 row` |
+
+## Results on the real data (task 8, 2026-10-10)
+
+`python -m src.datasets.ghent` on DSLIB v3.4 (about 13 s in the container):
+
+| Table | Rows |
+|---|---|
+| `projects` | 231 (groups A 117, B 41, C 73); IDs unique |
+| `activities` | 25,626 (3,632 of them WBS summary rows); every project has activities |
+| `tracking` | 1,514 periods in 117 projects (= the count found in the inspection) |
+| `issues` | 221 |
+
+Issues found (all real data problems, listed in `issues`):
+
+| Count | Problem | Projects |
+|---|---|---|
+| 171 | `Variable Cost not a number`: values like `'0,00 $'` | C2024-03 only |
+| 13 | `Fixed Cost not a number`: values like `'$463,00'` | C2024-04 only |
+| 31 | `BAC missing` (30 × `-`, 1 × `N/A` in the source) | C2011-14, C2012-03, -06, -07, -12, -16, C2016-35, -36, -40, -41, -43, C2017-02, -03, C2018-01, -11, C2019-12, -15, -17, -22…-28, C2020-01, C2022-01, -02, C2023-03, -10, -14 |
+| 4 | `no ID 0 row` | C2025-07, C2025-08, C2025-18, C2025-19 |
+| 1 | `duplicate activity_id 89` | C2023-12 |
+| 1 | `Resources not Y/N: '6'` | C2024-01 |
+
+The two dollar projects are **not converted**: the loader does not mix currencies.
+
+Projects without tracking: the 114 projects of groups B and C (`project_groups.csv`).
+
+Cross-checks:
+- **BAC vs sum of leaf activity costs:** 158 projects have both; 156 agree within 1 %.
+  Exceptions: C2019-10 (1.2 % off) and C2017-01 (90 % off). Not corrected; noted here.
+- **Final AC (last tracking period) vs `real_cost`:** 116 group A projects have both; 115 agree
+  within 1 %.
+- **Unit of `real_duration`:** `real_duration / planned_duration_days − 1` equals the source's
+  `duration_deviation` (Early/late) within 0.01 for 113 of 116 projects, so `real_duration` is in
+  the same unit as PD (days). It is about 0.72 × the calendar span (median), close to 5/7,
+  which suggests working days. That is an inference; the file does not state it.
+- Only 37 of the 117 group A projects end with an `Actual Schedule` period; the others end with
+  a dated period.
