@@ -27,6 +27,7 @@ New steps are added at the bottom. Technologies mentioned here are explained in
 | 13 | 2026-10-07 | Stage 0 | API key and first real Claude call (Phase 0 done) |
 | 14 | 2026-10-08 | Stage 2 | UFGS downloader: 271 active specification PDFs (13 divisions) |
 | 15 | 2026-10-08 | Process | One git branch per spec, specs in plain Markdown |
+| 16 | 2026-10-10 | Stage 2 | Ghent DSLIB: download, inspect, loader (231 projects) |
 
 ---
 
@@ -599,6 +600,109 @@ git push -u origin spec/2026-10-08-ghent-project-db
 **Problems & fixes:** none.
 
 **Learn:** git branches, feature-branch workflow, pull requests.
+
+---
+
+## Step 16: Ghent DSLIB: download, inspect, loader (231 projects)
+
+**What:** the real project database for Module D (project controls):
+1. downloaded;
+2. inspected file by file;
+3. sorted into three groups;
+4. loaded into clean pandas tables by `load_ghent()`.
+
+It is the first feature built on its own spec branch (`spec/2026-10-08-ghent-project-db`).
+
+**Why:** Module D (EVM, overrun forecasting, monthly reports) needs real projects with a
+baseline plan and progress measurements, not invented numbers.
+
+**How:**
+1. **Source check:**
+   - The UGent data page lists one real-life dataset: **DSLIB**, the Dynamic Scheduling Library.
+     All the others are artificial benchmarks.
+   - It is a GitHub release zip, with no form.
+   - No license file; the authors ask for a citation (Batselier & Vanhoucke 2015).
+2. **Download** (inside the container, `PoliteClient`):
+   - `DSLIB3.4.zip`, 137,394,368 bytes, the same size GitHub reports; SHA-256 recorded.
+   - Zip checked for unsafe paths; macOS `__MACOSX/` junk not extracted.
+3. **Inspect before coding:**
+   - every sheet of the summary workbook;
+   - the sheet layouts of all 231 project workbooks;
+   - header variants, value types per column, cross-checks.
+   - All written in `format_notes.md`.
+4. **Owner decisions:**
+   - Option 1: `tracking` from `Tracking Overview` only (group A).
+   - Group folders: copies of each project's files in A/B/C folders.
+5. **Spec columns → fixture → tests (red) → loader (green) → real data.**
+
+```bash
+docker compose exec dev uv add openpyxl                  # after adding it to tech-stack.md
+docker compose exec dev uv run pytest tests/test_ghent_loader.py   # 45 passed
+docker compose exec dev uv run python -m src.datasets.ghent        # summary of the real data
+```
+
+```python
+from src.datasets.ghent import load_ghent
+data = load_ghent()   # .projects .activities .tracking .issues
+```
+
+**Files:**
+
+| File | Change |
+|---|---|
+| `src/datasets/ghent.py` | Loader: `load_ghent()`, `GhentData`, `parse_euro`, `parse_duration`, `normalize_project_id`, `GhentFormatError`; CLI summary |
+| `tests/test_ghent_loader.py` | 45 tests: parsers, columns, types, groups, WBS summary rows, missing columns, issues, errors |
+| `tests/fixtures/ghent_fixture.py` | Builds 4 fake workbooks in the real layout (made-up values; the real data has no license) |
+| `specs/2026-10-08-ghent-project-db/` | `spec.md` (open questions, decisions, columns, results), `tasks.md`, `format_notes.md`, `file_list.csv`, `project_groups.csv` |
+| `product/tech-stack.md`, `pyproject.toml`, `uv.lock` | `openpyxl` 3.1.5 |
+| `docs/LEARNING_GUIDE.md` | New 1.12 Reading messy Excel files; TDD in 8.1; 1.6 example fixed (it named a file and sheet that don't exist) |
+| `product/roadmap.md`, `PROJECT_PLAN.md`, `docs/stages/stage_02_data.md` | Item ticked; 133 → 231 projects (117 with tracking); group B item added to Phase 4 |
+| `data/raw/project_controls/ghent/` | Zip, extracted `DSLIB 3.4/`, `download.json` (git-ignored) |
+| `data/processed/project_controls/ghent/groups/` | `A_tracking_ready/` 117, `B_raw_progress_only/` 41, `C_plan_only/` 73 project folders (copies, git-ignored) |
+
+**Verify (real results, 2026-10-10):**
+
+| Table | Rows |
+|---|---|
+| `projects` | 231 (A 117, B 41, C 73), IDs unique |
+| `activities` | 25,626 (3,632 WBS summary rows); every project has activities |
+| `tracking` | 1,514 periods in 117 projects |
+| `issues` | 221 |
+
+- The 221 issues are all real data problems:
+  - 184 costs written in **dollars** in 2 projects (C2024-03, C2024-04), not converted;
+  - 31 projects without BAC;
+  - 4 projects without an ID 0 row;
+  - 1 duplicate activity ID;
+  - 1 odd "Resources" value.
+- Cross-checks:
+  - BAC = sum of leaf activity costs (within 1 %) in 156 of 158 projects. C2017-01 is 90 % off.
+  - Final AC = summary real cost (within 1 %) in 115 of 116.
+  - `real_duration` uses the same unit as the planned duration (113 of 116 match the source's
+    Early/late). It is probably working days; that is inferred, not stated.
+- `pytest`: 98 passed, 2 deselected. `ruff check` and `ruff format`: clean. Loading takes about
+  13 s.
+
+**Problems & fixes:**
+1. **PROJECT_PLAN said 133 projects.** The current release has 231. Corrected everywhere.
+2. **Tracking data is uneven.** Only 117 projects have a ready `Tracking Overview`; 41 have raw
+   per-activity progress only (no PV/EV); 73 have none. Decision (owner): load group A now,
+   compute group B in the EVM step. Both groups are listed, not dropped.
+3. **Project IDs are written inconsistently in file names** (`C2016-9`, `C2019-11_procard`).
+   Fix: one `normalize_project_id()` (regex + zero padding); then all 3 folders give the same
+   231 IDs.
+4. **Completeness is stored only as cell colours.** Fix: read the fill colour (non-read-only
+   mode) and map it to `green`/`yellow`/`orange`. The colours' meaning is not guessed.
+5. **pandas 3 `str` dtype:** missing text became `NaN`, not `None`, and one test failed. Fix:
+   label columns are converted to `object` explicitly.
+6. **The host's `python3` hung twice** (the Windows app-store alias waits for input). Fix: run
+   Python only inside the container, and edit files with the editor.
+7. **In chat I first said the tests had 46 checks.** The real number is 45.
+
+**Learn:**
+- LEARNING_GUIDE 1.12 Reading messy Excel files;
+- 8.1 pytest (TDD, fixture builders);
+- 2.2 EVM (PV, EV, AC, SPI, CPI in the `tracking` table).
 
 ---
 

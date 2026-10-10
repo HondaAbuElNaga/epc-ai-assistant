@@ -226,7 +226,7 @@ Assumes 3–4 hours a day.
 | Dataset | Source | Where it goes | Used by |
 |---|---|---|---|
 | UFGS specifications (PDF) | https://www.wbdg.org/dod/ufgs | `data/raw/ufgs/` | A, B |
-| Ghent OR&S real project database (133 projects, EVM data) | https://www.projectmanagement.ugent.be/research/data | `data/raw/project_controls/ghent/` | D |
+| Ghent OR&S real project database, DSLIB v3.4 (231 projects; 117 with EVM tracking periods) | https://github.com/MarioVanhoucke/DSLIB-Dynamic-Scheduling-Empirical-Project-Library (release zip; listed on https://www.projectmanagement.ugent.be/research/data) | `data/raw/project_controls/ghent/` | D |
 | NYC capital projects | NYC Open Data (search "Capital Projects") | `data/raw/project_controls/nyc/` | D (extra) |
 | PID2Graph (real P&IDs with annotations) | https://zenodo.org/records/14803338 | `data/raw/pid/pid2graph/` | C |
 | Dataset-P&ID (500 synthetic P&IDs) | Link in arXiv paper 2109.03794 | `data/raw/pid/dataset_pid/` | C |
@@ -234,7 +234,7 @@ Assumes 3–4 hours a day.
 
 **Process:**
 1. Write `src/datasets/ufgs.py` (run: `python -m src.datasets.ufgs`): read the section list from the WBDG sitemap, ask the WBDG API which sections are active and where their current PDF is, download only active sections (divisions 01, 03, 05, 22, 23, 26, 33 + process divisions 40, 41, 42, 43, 44, 46), use polite request delays, skip files that already exist, and write `data/raw/ufgs/manifest.json`. Spec: `specs/2026-10-07-ufgs-download/`.
-2. Download the Ghent database manually (it may require a form) and unzip it. Then **inspect the file format before writing any code**.
+2. Download the Ghent DSLIB release zip from GitHub (no form needed) and unzip it. Then **inspect the file format before writing any code**. Done 2026-10-10: `src/datasets/ghent.py` (run: `python -m src.datasets.ghent`), spec `specs/2026-10-08-ghent-project-db/` (format notes, groups, results).
 3. Download PID2Graph from Zenodo.
 4. Write `data/DATA_CATALOG.md`: for each dataset record the source URL, download date, license, file count, size and known issues.
 5. Write a profiling notebook per dataset (`notebooks/00_profile_<dataset>.ipynb`) covering counts, missing values, distributions and sample records.
@@ -351,10 +351,11 @@ Assumes 3–4 hours a day.
 
 ### Process
 
-**5.1 Data loading** (`src/project_controls/load.py`)
+**5.1 Data loading** (`src/datasets/ghent.py`, done in Stage 2)
 - Parse the Ghent project files (baseline schedule, activities, tracking periods) into clean tables:
   `projects`, `activities`, `tracking(project_id, period, PV, EV, AC, ...)`.
-- Validate them with a pandera schema.
+- Validate them with a pandera schema (still to do).
+- Group B projects (41) have raw progress only: compute their PV/EV here before using them.
 
 **5.2 EVM engine** (`src/project_controls/evm.py`), implemented as pure Python functions:
 
@@ -372,7 +373,7 @@ Assumes 3–4 hours a day.
 - Task: from the data available at X% complete (20/40/60%), predict the **final cost overrun %** and the **final schedule overrun %**.
 - Features: CPI, SPI, SPI(t), their trends (slopes), project size, duration, number of activities, sector, network complexity.
 - Models: the EVM formula EAC (baseline to beat), linear regression, random forest, XGBoost.
-- With only 133 projects, use **leave-one-out or grouped k-fold cross-validation**, keep models small, and report confidence intervals.
+- With only 117 projects with tracking (158 after group B is computed), use **leave-one-out or grouped k-fold cross-validation**, keep models small, and report confidence intervals.
 - The key result: *does ML beat the standard EVM formula, and at what stage of the project?*
 
 **5.4 Risk flags:** a rules engine (CPI < 0.9, SPI < 0.9, three falling periods in a row, TCPI > 1.1) plus the model's predicted overrun.
@@ -394,7 +395,7 @@ Assumes 3–4 hours a day.
 | Report tests | The number guard has zero unknown numbers; all required sections are present; human review of 5 reports |
 
 **Done when:**
-- [ ] EVM metrics computed for all 133 projects
+- [ ] EVM metrics computed for all projects with tracking (117 ready, 41 to compute)
 - [ ] Forecast comparison table (ML vs. EVM formula at 20/40/60%)
 - [ ] One-command report: `python -m src.project_controls.report --project C2013-05`
 - [ ] `docs/eval_module_d.md`
@@ -675,7 +676,7 @@ one risk (data leaving to an API).
 | A library doesn't support the Python version | The container pins Python 3.12, independent of the Windows Python |
 | Large images (torch pulls CUDA wheels) | Use the PyTorch CPU index in `[tool.uv.sources]` for the container; GPU training stays on Colab |
 | The Ghent data format is complex | Inspect it first; start with the summary data, then the detailed tracking data |
-| Small dataset (133 projects) leads to overfitting | Simple models, leave-one-out cross-validation, always compare against the EVM formula baseline |
+| Small dataset (117–158 projects with tracking) leads to overfitting | Simple models, leave-one-out cross-validation, always compare against the EVM formula baseline |
 | UFGS PDF formatting varies | Fallback parser; log sections that failed to parse |
 | P&ID detection is weak on real drawings | Train on synthetic data and fine-tune on real; report honestly |
 | LLM cost grows | Use Haiku for bulk work, cache every LLM response, use small evaluation subsets during development |
@@ -715,8 +716,8 @@ one risk (data leaving to an API).
 - [x] `docs/03_evm_formulas.md`
 
 **Stage 2: Data**
-- [ ] UFGS downloaded
-- [ ] Ghent database downloaded and inspected
+- [x] UFGS downloaded
+- [x] Ghent database downloaded and inspected
 - [ ] PID2Graph and Dataset-P&ID downloaded
 - [ ] OSHA data downloaded
 - [ ] `DATA_CATALOG.md` and profiling notebooks

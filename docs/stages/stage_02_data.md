@@ -15,7 +15,7 @@ memory. Download it, inspect it, then write down what you saw.
 | # | Dataset | Source | Goes to | Used by | Status |
 |---|---|---|---|---|---|
 | 1 | UFGS specifications (PDF), active sections of divisions 01, 03, 05, 22, 23, 26, 33, 40, 41, 42, 43, 44, 46 | https://www.wbdg.org/dod/ufgs | `data/raw/ufgs/` | A, B | done 2026-10-08: 271 PDFs, 37.6 MB ([spec](../../specs/2026-10-07-ufgs-download/spec.md)) |
-| 2 | Ghent OR&S real project database (EVM data) | https://www.projectmanagement.ugent.be/research/data | `data/raw/project_controls/ghent/` | D | not started; may need a form, inspect the format first |
+| 2 | Ghent OR&S real project database (EVM data) | https://www.projectmanagement.ugent.be/research/data | `data/raw/project_controls/ghent/` | D | done 2026-10-10: DSLIB v3.4, 231 projects (A 117 tracking ready, B 41 raw progress, C 73 plan only), loader `src/datasets/ghent.py` ([spec](../../specs/2026-10-08-ghent-project-db/spec.md), [format notes](../../specs/2026-10-08-ghent-project-db/format_notes.md)) |
 | 3 | PID2Graph (real P&IDs with annotations) | https://zenodo.org/records/14803338 | `data/raw/pid/pid2graph/` | C | not started |
 | 4 | Dataset-P&ID (synthetic P&IDs) | link in arXiv paper 2109.03794 | `data/raw/pid/dataset_pid/` | C | not started |
 | 5 | OSHA Severe Injury Reports, NYC capital projects (optional) | osha.gov, NYC Open Data | `data/raw/osha/`, `data/raw/project_controls/nyc/` | B, D (extra) | optional |
@@ -69,14 +69,15 @@ versions go to `data/processed/`.
 | Sitemaps, robots.txt, polite downloading, retries with backoff | 1.9 Web data acquisition |
 | Atomic writes, resumable downloads, checksums (SHA-256), provenance | 1.10 Data integrity |
 | Web page vs API, JSON, undocumented APIs | 1.11 Web page vs API |
-| DataFrame validation (`pandera`) | added with the Ghent loader |
+| Reading messy Excel files (`openpyxl`) | 1.12 Reading messy Excel files |
+| DataFrame validation (`pandera`) | Phase 4 (Ghent pandera schema) |
 
 ---
 
 ## Done When
 
 - [ ] UFGS downloaded, manifest complete, counts recorded in the DEVLOG
-- [ ] Ghent database downloaded, format inspected, loader written
+- [x] Ghent database downloaded, format inspected, loader written
 - [ ] PID2Graph + Dataset-P&ID downloaded
 - [ ] `data/DATA_CATALOG.md` + `data/checksums.json`
 - [ ] Profiling notebook per dataset
