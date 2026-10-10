@@ -11,7 +11,7 @@ container (`docker compose exec dev ...`).
          Done 2026-10-10; openpyxl added (tech-stack + uv) to read the .xlsx files
 - [x] 3b. Owner decision: option 1 (tracking from group A only); projects sorted into group
           folders A/B/C (copies) + `project_groups.csv` (spec "Decisions")
-- [ ] 4. Update the spec: exact columns of `projects`, `activities`, `tracking`; add `openpyxl`
+- [x] 4. Update the spec: exact columns of `projects`, `activities`, `tracking`; add `openpyxl`
          to `product/tech-stack.md` + `uv add` only if the files are Excel
 - [ ] 5. Build a tiny fixture in `tests/fixtures/` from the real format
 - [ ] 6. Write `tests/test_ghent_loader.py` (tables, snake_case, types, missing-column error),

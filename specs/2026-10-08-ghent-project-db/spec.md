@@ -32,7 +32,9 @@ invented numbers.
    - `projects`: one row per project (id, name, BAC, planned duration, …, as available)
    - `activities`: one row per activity (project id, activity id, duration, cost, …)
    - `tracking`: one row per project per tracking period (project id, period, PV, EV, AC, …)
-   Exact columns are fixed **after** the inspection and written back into this spec.
+   - `issues`: one row per data problem found while loading (added after inspection, so that
+     problems are listed, not silently dropped)
+   Exact columns: see "Table columns" below (fixed 2026-10-10, after the inspection).
 4. Column names are `snake_case`; dates are parsed; money and durations are numeric.
 5. The loader fails with a clear error naming the file and column when an expected column is
    missing.
@@ -126,3 +128,92 @@ GitHub API for the latest release.
    (git-ignored). The originals in `data/raw/` stay unchanged.
 4. Acceptance criterion "every project has at least one tracking period" is expected to list the
    114 projects of groups B and C; they are kept in `projects` and `activities`.
+
+## Table columns (task 4, 2026-10-10; sources in format_notes.md §4–5)
+
+Missing values (`N/A`, `-`, empty, unparseable text) become `NaN`/`NaT`/`None`. Money is in
+euro (the `Overview` sheet says BAC is in euro), stored as `float`. Every unparseable value
+also adds a row to `issues`.
+
+### `projects` (231 rows, from the `DSLIB` sheet rows 4–234 + the group check)
+
+| Column | Type | Source | Note |
+|---|---|---|---|
+| `project_id` | str | A `Code` | Normalized `C2011-05` (§3) |
+| `name` | str | B `Project name` | |
+| `sector` | str | D `Sector` | Case unified (`Construction (civil)`) |
+| `keywords` | str | E `Keywords` | |
+| `submitted_by` | str | C `Submitted by` | |
+| `group` | str | workbook check | `A` / `B` / `C` (spec Decisions) |
+| `completeness_baseline` | str | F fill colour | `green` / `yellow` / `orange` / None; meaning not documented in the file |
+| `completeness_risk` | str | G fill colour | same |
+| `completeness_control` | str | H fill colour | same (`FFFF8001` counted as orange) |
+| `n_activities` | int | K `# activities` | As reported by the source |
+| `planned_duration_days` | float | L `PD (days)` | |
+| `bac` | float | M `BAC` | Euro strings like `€743 676` parsed; `-` → NaN |
+| `has_resources` | bool | N `Resources` | `Y`/`N`; other → None |
+| `real_duration` | float | CE `Real Duration` | Unit not stated in `Overview`; checked in task 8 |
+| `real_cost` | float | CF `Real Cost` | Euro strings parsed |
+| `duration_deviation` | float | R `Early/late` | Fraction (0.12 = 12 % late) |
+| `cost_deviation` | float | S `Under/over budget` | Fraction; sign as in source (positive = under budget per `Overview`) |
+| `sp`, `ad`, `la`, `tf`, `ri` | float | T–X | Network topology indicators |
+| `regularity` | str | Y | Lower-case `regular` / `irregular` |
+| `excel_file` | str | file name | Per-project workbook name |
+
+Not loaded now (available later if needed): authenticity (I–J), resource counts (O–Q),
+sensitivity metrics (Z–BI), averaged performance metrics (BJ–CD; these can be recomputed from
+`tracking`).
+
+### `activities` (one row per row of `Baseline Schedule` below ID 0, all 231 projects)
+
+| Column | Type | Source column | Note |
+|---|---|---|---|
+| `project_id` | str | file name | |
+| `activity_id` | int | `ID` | Text IDs (`'2'`) converted |
+| `name` | str | `Name` | |
+| `wbs` | str | `WBS` | May be empty (12 projects have no WBS) |
+| `is_summary` | bool | computed | True when another row's WBS starts with this WBS + `.` |
+| `predecessors` | str | `Predecessors` | Raw text, e.g. `19FS;20FS` |
+| `successors` | str | `Successors` (or `Sussessors`) | Raw text, e.g. `FS3;FS4` |
+| `baseline_start` | datetime | `Baseline Start` | |
+| `baseline_end` | datetime | `Baseline End` | Missing in newer files |
+| `duration_raw` | str | `Duration` | As written: `3d`, `1d 2h`, `58 days` |
+| `duration_days` | float | parsed | The days part (`1d 2h` → 1) |
+| `duration_hours` | float | parsed | The hours part (`1d 2h` → 2). Not converted to days: that needs the `Agenda` calendar |
+| `resource_demand` | str | `Resource Demand` | Raw text |
+| `resource_cost` | float | `Resource Cost` | |
+| `fixed_cost` | float | `Fixed Cost` | |
+| `variable_cost` | float | `Variable Cost` | |
+| `total_cost` | float | `Total Cost` | Missing in newer files |
+| `calendar_days` | float | `Baseline duration (in calendar days)` | Only in 164 projects |
+
+Required columns (missing → clear error, Requirement 5): `ID`, `Name`, `Baseline Start`,
+`Duration`. All others are optional (NaN when the column is absent).
+
+### `tracking` (group A only: one row per row of `Tracking Overview`)
+
+| Column | Type | Source column | Note |
+|---|---|---|---|
+| `project_id` | str | file name | |
+| `period` | int | row order | 1, 2, 3, … |
+| `period_name` | str | `Name` | Free text, e.g. `24/05, 2011` |
+| `is_final` | bool | `Name` | True when the name is `Actual Schedule` |
+| `period_start` | datetime | `Start Tracking Period` | |
+| `status_date` | datetime | `Status date` | |
+| `pv`, `ev`, `ac` | float | `Planned Value (PV)`, `Earned Value (EV)`, `Actual Cost (AC)` | Euro |
+| `es` | datetime | `Earned Schedule (ES)` | A date in the source |
+| `sv`, `spi`, `cv`, `cpi` | float | `Schedule Variance (SV)`, `… (SPI)`, `Cost Variance (CV)`, `… (CPI)` | |
+| `sv_t_raw` | str | `Schedule Variance (SV(t))` | Text like `-3d 5h` |
+| `spi_t` | float | `Schedule Performance Index (SPI(t))` | |
+| `p_factor` | float | first `p-factor` | |
+
+Required: the first 14 columns of the header (format_notes §5.2). Forecast columns (EAC…) are
+not loaded; forecasting is a later roadmap item.
+
+### `issues`
+
+| Column | Type | Note |
+|---|---|---|
+| `project_id` | str | |
+| `table` | str | `projects` / `activities` / `tracking` |
+| `problem` | str | e.g. `duplicate activity_id 12`, `BAC not a number: '-'`, `no ID 0 row` |
