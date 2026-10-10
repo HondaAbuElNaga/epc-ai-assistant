@@ -7,7 +7,8 @@ container (`docker compose exec dev ...`).
          Done 2026-10-10: no form; dataset = DSLIB v3.4 (GitHub release zip)
 - [x] 2. Download into `data/raw/project_controls/ghent/`; record file list, sizes, date
          Done 2026-10-10: DSLIB3.4.zip, 231 projects; see format_notes.md §1–3, file_list.csv
-- [ ] 3. Inspect every file; write `format_notes.md` (files, sheets, columns, units, examples)
+- [x] 3. Inspect every file; write `format_notes.md` (files, sheets, columns, units, examples)
+         Done 2026-10-10; openpyxl added (tech-stack + uv) to read the .xlsx files
 - [ ] 4. Update the spec: exact columns of `projects`, `activities`, `tracking`; add `openpyxl`
          to `product/tech-stack.md` + `uv add` only if the files are Excel
 - [ ] 5. Build a tiny fixture in `tests/fixtures/` from the real format
