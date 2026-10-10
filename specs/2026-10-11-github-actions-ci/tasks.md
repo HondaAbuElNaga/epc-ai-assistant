@@ -8,7 +8,7 @@ Spec: [spec.md](spec.md) · Local commands inside the container (`docker compose
          and fix any test that needs `data/` or `.env`
 - [ ] 3. Look up the current releases of `actions/checkout` and `astral-sh/setup-uv` on GitHub
 - [ ] 4. Write `.github/workflows/ci.yml` (triggers, `permissions: contents: read`, setup-uv
-         with uv `0.12.2` + Python 3.12 + cache, `uv sync --frozen`, ruff check,
+         with uv `0.12.2` + Python 3.12 + cache, `uv sync --locked`, ruff check,
          ruff format --check, pytest)
 - [ ] 5. `uv run ruff check .`, `uv run ruff format .`, `uv run pytest`
 - [ ] 6. Push, open the pull request, check the first run is ✅ and note its duration

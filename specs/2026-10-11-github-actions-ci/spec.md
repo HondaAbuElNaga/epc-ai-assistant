@@ -24,7 +24,7 @@ that the project is tested.
 - In:
   - One workflow file: `.github/workflows/ci.yml`.
   - Runs on: every **pull request** into `main`, and every **push to `main`** (after a merge).
-  - Steps: get the code → install uv and Python 3.12 → install the locked dependencies →
+  - Steps: get the code → install uv and Python 3.12 → install the locked dependencies (`uv sync --locked`) →
     `ruff check` → `ruff format --check` → `pytest` (without real-API, network and evaluation
     tests) with a coverage report.
   - A CI badge in `README.md`.
@@ -38,7 +38,7 @@ that the project is tested.
 ## Requirements
 
 1. **Same tools as local work:** uv with the same version as the `Dockerfile` (`0.12.2`),
-   Python 3.12, dependencies from `uv.lock` without changes (`uv sync --frozen`). If the lock
+   Python 3.12, dependencies from `uv.lock` without changes (`uv sync --locked`). If the lock
    file does not match `pyproject.toml`, CI fails.
 2. **Lint:** `uv run ruff check .` must pass.
 3. **Format:** `uv run ruff format --check .` must pass. In CI it only **checks**; it never
