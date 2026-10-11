@@ -4,9 +4,12 @@ Spec: [spec.md](spec.md) · Local commands inside the container (`docker compose
 
 - [x] 1. Owner approves the spec and answers the open questions (2026-10-11: protect `main`;
          add secret scan + coverage gate)
-- [ ] 2. Run the exact CI test command locally on this branch
+- [x] 2. Run the exact CI test command locally on this branch
          (`uv run pytest -m "not network and not llm and not eval" --cov=src --cov-report=term
          --cov-fail-under=70`) and fix any test that needs `data/` or `.env`
+         → 2026-10-11, on a clean copy (git archive, no `data/`, no `.env`, no API key): 1 test
+           failed because `data/raw/.gitkeep` was never committed; fixed (`ef1839b`). Re-run: ruff
+           ✅, 97 passed, 3 deselected, coverage 86.98 %.
 - [ ] 3. Look up the current releases of `actions/checkout`, `astral-sh/setup-uv` and gitleaks
          (and the gitleaks license terms); add gitleaks to `product/tech-stack.md`
 - [ ] 4. Write `.github/workflows/ci.yml`: triggers, `permissions: contents: read`;
