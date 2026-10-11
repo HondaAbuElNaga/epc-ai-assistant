@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 .env
 .ipynb_checkpoints/
+.coverage
+htmlcov/
 
 # large data stays local
 data/raw/**
