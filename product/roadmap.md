@@ -12,8 +12,10 @@ models** (Phase 10) and harden for **confidential data** (Phase 11).
 
 **Current position:** Phase 0 done (2026-10-07) · Phase 1 material written, study in progress ·
 Phase 2 in progress: UFGS downloaded (2026-10-08, 271 active PDFs in 13 divisions) · Ghent DSLIB
-v3.4 downloaded, inspected and loaded (2026-10-10, 231 projects, 117 with EVM tracking) · **next:
-a spec for PID2Graph + Dataset-P&ID download**.
+v3.4 downloaded, inspected and loaded (2026-10-10, 231 projects, 117 with EVM tracking) · CI
+built early (Phase 9 item, 2026-10-11): every pull request into `main` must pass ruff, pytest
+with a 70 % coverage gate and a gitleaks secret scan · **next: a spec for PID2Graph +
+Dataset-P&ID download**.
 
 ---
 
@@ -123,7 +125,7 @@ with tracking periods ready; 41 more need PV/EV computed from raw progress).
 
 - [ ] Streamlit app (5 pages) `L`
 - [ ] FastAPI (optional) `M`
-- [ ] GitHub Actions CI, coverage ≥ 70% `S`
+- [x] GitHub Actions CI, coverage ≥ 70% (tests + 70 % gate + gitleaks secret scan; `main` protected; [spec](../specs/2026-10-11-github-actions-ci/spec.md), 2026-10-11, moved earlier) `S`
 - [ ] Production Docker image + hosted demo with usage limits `M`
 - [ ] Final README with results, demo video, LinkedIn post, interview notes `M`
 

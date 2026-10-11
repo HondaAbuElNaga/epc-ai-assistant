@@ -28,6 +28,7 @@ New steps are added at the bottom. Technologies mentioned here are explained in
 | 14 | 2026-10-08 | Stage 2 | UFGS downloader: 271 active specification PDFs (13 divisions) |
 | 15 | 2026-10-08 | Process | One git branch per spec, specs in plain Markdown |
 | 16 | 2026-10-10 | Stage 2 | Ghent DSLIB: download, inspect, loader (231 projects) |
+| 17 | 2026-10-11 | Stage 10 | GitHub Actions CI: tests, 70 % coverage gate, gitleaks, protected `main` |
 
 ---
 
@@ -708,6 +709,87 @@ data = load_ghent()   # .projects .activities .tracking .issues
 real example (C2011-05, sheet `TP3`, 2011-06-27): one late activity (ID 12, not started) makes
 PV − EV = 14,027.28 exactly; activity 15 shows fixed cost counted at the start (time 46.67 %,
 cost 75.15 %). §5.1 now defines WBS (owner's note, tidied).
+
+---
+
+## Step 17: GitHub Actions CI: tests, 70 % coverage gate, gitleaks, protected `main`
+
+**What:** a CI workflow that runs on every pull request into `main` and every push to `main`.
+It has two jobs:
+1. **`tests`**: ruff check, ruff format check, pytest with a 70 % coverage gate.
+2. **`secrets`**: a gitleaks scan of the full git history.
+
+`main` is now protected: a pull request can only be merged when both jobs are ✅. This was a
+Phase 9 roadmap item, done early (spec `2026-10-11-github-actions-ci`).
+
+**Why:** until now the checks ran by hand before each commit, and could be forgotten. CI runs
+them on a clean machine every time, blocks a red merge, and shows a badge on the README.
+
+**How:**
+1. **Clean-copy run first (task 2):** the exact CI test command on a `git archive` copy (no
+   `data/`, no `.env`, no API key). One test failed: `data/raw/.gitkeep` had never been
+   committed. Fixed in `ef1839b`.
+2. **Versions looked up, not guessed (task 3):**
+   ```bash
+   gh release list -R actions/checkout        # v7.0.1
+   gh release list -R astral-sh/setup-uv      # v10.3.0
+   gh release list -R gitleaks/gitleaks       # v8.30.1 (MIT)
+   gh api repos/<owner>/<repo>/commits/<tag> -q .sha   # SHA to pin each action
+   ```
+   `gitleaks-action` (v3.0.0) was **not** used: its EULA needs a license key for organisation
+   accounts and forbids modifications. The MIT binary is downloaded instead and its SHA-256 is
+   checked against the release's `checksums.txt`.
+3. **Local gitleaks scan before CI:** in the container, binary checksum `OK`, then
+   `gitleaks git --redact --verbose .`: 37 commits, **no leaks found**.
+4. **Workflow written (task 4):** see LEARNING_GUIDE 8.6 for each line.
+5. **Pull request #3** opened; first run ✅.
+6. **Proof of ❌ (task 7):** throwaway branch `ci-proof-throwaway`, draft PR #4:
+   - commit 1, a test asserting `1 + 1 == 3` → `tests` ❌ (`1 failed, 97 passed`), `secrets` ✅;
+   - commit 2, the test removed and a **made-up** GitHub token (random characters, never a real
+     key) added → `tests` ✅, `secrets` ❌ (`RuleID: github-pat`, `leaks found: 1`).
+   - PR #4 closed without merging, branch deleted.
+7. **Branch protection (task 8)**, after GitHub had seen the job names:
+   ```bash
+   gh api -X PUT repos/HondaAbuElNaga/epc-ai-assistant/branches/main/protection --input -
+   # required checks: tests, secrets (GitHub Actions app); enforce_admins: true;
+   # no force pushes, no deletion; no review required (one-person project)
+   ```
+
+**Files:**
+
+| File | Change |
+|---|---|
+| `.github/workflows/ci.yml` | New: jobs `tests` and `secrets`, `permissions: contents: read`, actions pinned by SHA |
+| `data/raw/.gitkeep`, `.gitignore` | Missing folder marker committed; coverage files ignored |
+| `README.md` | CI badge |
+| `product/tech-stack.md` | CI row ✅ with pinned versions; new gitleaks row ✅ |
+| `product/roadmap.md` | Phase 9 CI item ticked; "Current position" |
+| `PROJECT_PLAN.md` | Stage 10: coverage and CI ticked; testing strategy CI line updated |
+| `docs/LEARNING_GUIDE.md` | 8.6 rewritten (real workflow, pinning, `--locked`, coverage gate, branch protection); new "Secret scanning (gitleaks)" |
+| `specs/2026-10-11-github-actions-ci/` | `tasks.md` ticked with results; `spec.md` status done |
+
+**Verify (real results, 2026-10-11):**
+- Local: `ruff check` ✅, `ruff format` unchanged, `pytest`: 97 passed, 3 deselected, coverage
+  86.98 %.
+- PR #3, first CI run (`38098416486`): ✅ in **19 s** total (`tests` 17 s, `secrets` 5 s). On
+  GitHub: checksum `OK`, 38 commits scanned, no leaks, 97 passed, coverage 86.98 %.
+- `gh api .../branches/main/protection`: checks `tests` + `secrets`, `enforce_admins: true`.
+
+**Problems & fixes:**
+1. **PR #2 looked like "CI done", but it only merged the spec.** The workflow didn't exist yet.
+   Lesson: check files and the Actions tab, not the PR title.
+2. **Missing `data/raw/.gitkeep`:** see How 1. Exactly the kind of bug CI exists to catch.
+3. **No PyYAML in the container** to check the YAML locally. Not added just for this: GitHub
+   checks the file itself, and the first run passed.
+4. **The fake token is still visible in closed PR #4.** GitHub keeps a closed PR's commits even
+   after the branch is deleted. It is harmless (random, never valid), but it shows why a
+   **real** leaked key must be revoked: deleting it from git does not make it disappear.
+
+**Learn:**
+- LEARNING_GUIDE 8.6 GitHub Actions (CI) and "Secret scanning (gitleaks)";
+- 8.3 Coverage;
+- 1.10 Data integrity (checksums);
+- 9.3 Secrets management.
 
 ---
 

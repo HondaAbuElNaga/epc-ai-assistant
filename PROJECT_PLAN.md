@@ -541,7 +541,10 @@ Assumes 3–4 hours a day.
 - **Golden sets are versioned** in `tests/golden/`. Never edit them to make a test pass.
 - **Save evaluation results** to `docs/eval_results/<module>_<date>.json` to track progress over time.
 - **Coverage target:** ≥ 70% on `src/` (`pytest --cov=src`).
-- **CI** (`.github/workflows/ci.yml`): install → ruff → pytest (without evaluation tests).
+- **CI** (`.github/workflows/ci.yml`): install (`uv sync --locked`) → ruff check → ruff format
+  --check → pytest (without `network`, `llm`, `eval` tests) with the 70 % coverage gate; a second
+  job scans the full git history for secrets with gitleaks. Both are required to merge into
+  `main` (branch protection).
 
 ### Folder layout
 ```
@@ -765,8 +768,8 @@ one risk (data leaving to an API).
 
 **Stage 10: Testing**
 - [ ] Unit, integration and evaluation suites
-- [ ] Coverage ≥ 70%
-- [ ] GitHub Actions CI green
+- [x] Coverage ≥ 70% (86.98 % on 2026-10-11; enforced in CI by `--cov-fail-under=70`)
+- [x] GitHub Actions CI green (2026-10-11, spec `2026-10-11-github-actions-ci`)
 
 **Stage 11: Deployment**
 - [ ] Docker image

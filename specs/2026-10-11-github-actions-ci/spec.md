@@ -2,7 +2,8 @@
 
 **Roadmap item:** Phase 9, "GitHub Actions CI, coverage ≥ 70%" (moved earlier, done in full
 here)
-**Status:** approved (2026-10-11), with the owner's decisions below
+**Status:** done (2026-10-11). Approved 2026-10-11 with the owner's decisions below; built on
+branch `spec/2026-10-11-github-actions-ci` (PR #3).
 **Related:** PROJECT_PLAN "Testing strategy" (`.github/workflows/ci.yml`: install → ruff →
 pytest) · `product/tech-stack.md` row "CI: GitHub Actions + `astral-sh/setup-uv`"
 
@@ -74,15 +75,16 @@ the project is tested.
 
 ## Acceptance criteria
 
-- [ ] `ci.yml` exists and both jobs are ✅ on this spec's pull request.
-- [ ] Proof that each check really works, on a throwaway branch (deleted afterwards, never
+- [x] `ci.yml` exists and both jobs are ✅ on this spec's pull request.
+- [x] Proof that each check really works, on a throwaway branch (deleted afterwards, never
       merged): a failing test → ❌; a fake secret (a made-up, non-working key) → ❌.
-- [ ] Coverage below 70 % fails the run (`--cov-fail-under=70` set).
-- [ ] The run takes under 5 minutes (time from the GitHub run page, recorded in the DEVLOG).
-- [ ] No secret is used; `permissions: contents: read` is set.
-- [ ] `main` is protected: merging needs both jobs ✅.
-- [ ] README shows the CI badge.
-- [ ] Docs: DEVLOG step, LEARNING_GUIDE section on CI / GitHub Actions / secret scanning,
+- [x] Coverage below 70 % fails the run (`--cov-fail-under=70` set).
+- [x] The run takes under 5 minutes (time from the GitHub run page, recorded in the DEVLOG).
+      → 19 s (run `38098416486`).
+- [x] No secret is used; `permissions: contents: read` is set.
+- [x] `main` is protected: merging needs both jobs ✅.
+- [x] README shows the CI badge.
+- [x] Docs: DEVLOG step, LEARNING_GUIDE section on CI / GitHub Actions / secret scanning,
       roadmap, PROJECT_PLAN, tech-stack (gitleaks row, CI status ✅).
 
 ## Technical approach

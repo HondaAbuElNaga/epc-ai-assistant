@@ -22,4 +22,4 @@ container (`docker compose exec dev ...`).
 - [x] 9. `uv run ruff check . && uv run ruff format . && uv run pytest`
 - [x] 10. Docs: DEVLOG step, LEARNING_GUIDE (new tech only), roadmap tick + "Current position",
           stage_02 checklist, PROJECT_PLAN checklist, spec status → done
-- [ ] 11. Push the branch, open a pull request, merge into `main`
+- [x] 11. Push the branch, open a pull request, merge into `main` (PR #1, merged 2026-10-11)
