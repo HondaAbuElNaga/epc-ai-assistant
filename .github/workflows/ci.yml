@@ -1,0 +1,68 @@
+# CI: runs the same checks as local work (ruff + pytest) and a secret scan, on a clean machine.
+# Spec: specs/2026-10-11-github-actions-ci/spec.md
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Least permission: the workflow can only read the code. No secrets are used.
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Get the code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install uv and Python 3.12
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: "0.12.2" # same as the Dockerfile
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install the locked dependencies
+        run: uv sync --locked # fails if uv.lock does not match pyproject.toml
+
+      - name: Lint (ruff check)
+        run: uv run ruff check .
+
+      - name: Format check (ruff format --check)
+        run: uv run ruff format --check .
+
+      - name: Tests + coverage gate (70 %)
+        run: >-
+          uv run pytest -m "not network and not llm and not eval"
+          --cov=src --cov-report=term --cov-fail-under=70
+
+  secrets:
+    name: secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GITLEAKS_VERSION: "8.30.1"
+      # SHA-256 of gitleaks_8.30.1_linux_x64.tar.gz, from the release's checksums.txt
+      GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+    steps:
+      - name: Get the code with the full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # all commits: a deleted key is still in the history
+
+      - name: Install gitleaks (pinned, checksum checked)
+        run: |
+          file="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          curl -sSfL -o "$file" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/$file"
+          echo "${GITLEAKS_SHA256}  $file" | sha256sum -c -
+          tar -xzf "$file" gitleaks
+
+      - name: Scan the full git history for secrets
+        run: ./gitleaks git --redact --verbose .
