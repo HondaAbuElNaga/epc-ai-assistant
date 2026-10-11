@@ -21,7 +21,7 @@ For each one:
 |---|---|
 | Stage 0 (setup) | 8.7 Spec-driven development · 1.1 Python · 1.2 Git & GitHub · 1.3 Docker · 1.4 Docker Compose · 1.5 uv · 8.1 pytest · 8.4 ruff |
 | Stage 1 (EPC) | 2.1 EPC basics · 2.2 Earned Value Management |
-| Stage 2 (data) | 1.6 pandas & numpy · 1.7 Jupyter · 1.8 HTTP & requests · 1.9 Web data acquisition · 1.10 Data integrity · 1.11 Web page vs API · 6.1 Data validation |
+| Stage 2 (data) | 1.6 pandas & numpy · 1.7 Jupyter · 1.8 HTTP & requests · 1.9 Web data acquisition · 1.10 Data integrity · 1.11 Web page vs API · 1.12 Reading messy Excel files · 6.1 Data validation |
 | Stage 3 (RAG) | Part 3 (all of 3.1 → 3.12) |
 | Stage 4 (documents) | 4.1 → 4.6 · 3.5 Structured output · 3.6 Pydantic |
 | Stage 5 (project controls) | 2.2 EVM · 4.4 Tree models / XGBoost · 4.5 Cross-validation · 4.6 Regression metrics · 6.1 pandera |
@@ -197,9 +197,12 @@ everything. **Project rule: every library is added with uv, never pip.**
 **Example:**
 ```python
 import pandas as pd
-df = pd.read_excel("data/raw/project_controls/ghent/C2013-05.xlsx", sheet_name="Tracking")
-df["CPI"] = df["EV"] / df["AC"]
-late = df[df["CPI"] < 0.9]
+from src.datasets.ghent import load_ghent
+
+tracking = load_ghent().tracking            # one row per project per tracking period
+tracking["cpi_check"] = tracking["ev"] / tracking["ac"]
+late = tracking[tracking["spi"] < 0.9]      # filtering
+per_project = tracking.groupby("project_id")["cpi"].last()   # groupby
 ```
 
 **Where:** Modules B, C and D, plus all evaluations.
@@ -365,6 +368,63 @@ if len(current) != 1: ...   # no_pdf or error: never guess
 **Study:** https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON ·
 https://developer.chrome.com/docs/devtools/network ·
 https://requests.readthedocs.io/en/latest/user/quickstart/#json-response-content
+
+---
+
+## 1.12 Reading messy Excel files (openpyxl + pandas)
+
+**What:** `openpyxl` reads and writes `.xlsx` files cell by cell. pandas uses it behind
+`pd.read_excel()`. Reading cells yourself gives full control when a sheet is not a clean
+table.
+
+**Why here:** the Ghent DSLIB data is 232 Excel workbooks made for people, not programs:
+- several header rows;
+- statistics rows under the data;
+- information stored only as a **cell colour**;
+- money written as text (`€ 464 186,97`);
+- durations as text (`1d 2h`);
+- sheet names with trailing spaces.
+
+`pd.read_excel()` alone would guess wrongly, so `src/datasets/ghent.py` reads the cells and
+cleans them.
+
+**Key concepts:**
+- **Inspect first, code second:**
+  - list the sheets;
+  - print the first rows;
+  - count the value types per column.
+  Write down what is really there (`format_notes.md`) before writing the loader.
+- `openpyxl.load_workbook(path, read_only=True, data_only=True)`:
+  - `read_only` streams big files fast;
+  - `data_only` returns the computed values instead of the formulas.
+  - Cell **colours** (`cell.fill.fgColor.rgb`) need `read_only=False`.
+- **Find the header by its text, not by its position** (`ID`, `Name`), and match columns by
+  name. Accept known variants (typos like `Sussessors`, extra spaces).
+- **Missing-value markers:** `N/A`, `-` and empty all mean "no value", so turn them into
+  `NaN`/`None`. Text that can't be read is a **data issue**: list it, don't guess.
+- **Required vs optional columns:**
+  - a missing required column gives a clear error that names the file and the column;
+  - a missing optional column gives an empty column.
+- **Cross-check against the source:** sums of parts = totals, final AC = real cost, your counts
+  = their counts.
+- **pandas 3:** text columns get the new `str` dtype, with `NaN` for missing values. If you
+  need `None`, convert to `object` explicitly.
+
+**Example (from `src/datasets/ghent.py`):**
+```python
+wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+sheets = {ws.title.strip(): ws for ws in wb.worksheets}       # "TP1 " -> "TP1"
+rows = list(sheets["Tracking Overview"].iter_rows(values_only=True))
+h = _find_header(rows, "Name")                                 # header row by its text
+parse_euro("€743 676")      # 743676.0
+parse_duration("1d 2h")     # (1.0, 2.0): days and hours kept apart
+```
+
+**Where:** `src/datasets/ghent.py`, `specs/2026-10-08-ghent-project-db/format_notes.md`.
+
+**Study:** https://openpyxl.readthedocs.io/en/stable/tutorial.html ·
+https://openpyxl.readthedocs.io/en/stable/optimized.html ·
+https://pandas.pydata.org/docs/reference/api/pandas.read_excel.html
 
 ---
 
@@ -957,6 +1017,15 @@ def ask(q: Question) -> Answer:
 **Key concepts:** test functions `test_*`; `assert`; fixtures (reusable setup);
 `@pytest.mark.parametrize` (the same test over many inputs); `pytest.skip`; markers (`-m llm`,
 `-m eval`); `tmp_path` (temporary folders).
+
+**Test-driven development (TDD):**
+1. Write the tests first.
+2. Run them and see them fail (red): this proves they really check something.
+3. Write the code until they pass (green).
+
+Used for the Ghent loader. Its test data is a **fixture builder**
+(`tests/fixtures/ghent_fixture.py`): code that writes small fake Excel files in the real
+layout, so no real (unlicensed) data goes into git.
 
 **Example:**
 ```python

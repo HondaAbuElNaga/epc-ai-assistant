@@ -11,8 +11,9 @@
 models** (Phase 10) and harden for **confidential data** (Phase 11).
 
 **Current position:** Phase 0 done (2026-10-07) · Phase 1 material written, study in progress ·
-Phase 2 in progress: UFGS downloaded (2026-10-08, 271 active PDFs in 13 divisions) · **next: a
-spec for the Ghent project database (download, inspect the format, loader)**.
+Phase 2 in progress: UFGS downloaded (2026-10-08, 271 active PDFs in 13 divisions) · Ghent DSLIB
+v3.4 downloaded, inspected and loaded (2026-10-10, 231 projects, 117 with EVM tracking) · **next:
+a spec for PID2Graph + Dataset-P&ID download**.
 
 ---
 
@@ -45,7 +46,7 @@ spec for the Ghent project database (download, inspect the format, loader)**.
 **Done when:** `DATA_CATALOG.md` is complete and the data tests pass.
 
 - [x] UFGS download script: active sections of divisions 01, 03, 05, 22, 23, 26, 33 + process 40–46 (271 PDFs, 2026-10-08) `S`
-- [ ] Ghent project database: download, inspect format, loader `S`
+- [x] Ghent project database: download, inspect format, loader (DSLIB v3.4: 231 projects, groups A 117 / B 41 / C 73, 2026-10-10) `S`
 - [ ] PID2Graph + Dataset-P&ID download `XS`
 - [ ] OSHA + NYC capital projects (optional) `XS`
 - [ ] `data/DATA_CATALOG.md` + checksums `XS`
@@ -67,10 +68,12 @@ spec for the Ghent project database (download, inspect the format, loader)**.
 
 ## Phase 4: Module D, Project Controls (Stage 5), core
 
-**Goal:** EVM, overrun forecast and automatic report on 133 real projects.
+**Goal:** EVM, overrun forecast and automatic report on real projects (Ghent DSLIB: 117 projects
+with tracking periods ready; 41 more need PV/EV computed from raw progress).
 **Done when:** forecast comparison table published; reports pass the number guard.
 
-- [ ] Ghent data loader + pandera schema `S`
+- [ ] Ghent pandera schema (the loader itself was done in Phase 2) `XS`
+- [ ] Compute PV/EV for the 41 group B projects from their raw progress (TP sheets) `S`
 - [ ] EVM engine (incl. earned schedule) + unit tests from `docs/03_evm_formulas.md` `S`
 - [ ] Forecast models vs. EVM baseline (LOOCV, 20/40/60%) `L`
 - [ ] Risk flags `XS`

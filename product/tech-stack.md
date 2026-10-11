@@ -28,6 +28,7 @@
 | Fast model | `claude-haiku-4-5` | ✅ | Bulk extraction, classification, cheap evaluation |
 | Config | `python-dotenv` | ✅ | `.env` → `src/common/config.py` |
 | Data | `pandas`, `numpy` | ✅ | Tables, EVM |
+| Excel reading | `openpyxl` (pandas `read_excel` engine for `.xlsx`) | ✅ | Ghent DSLIB data is `.xlsx` (spec 2026-10-08-ghent-project-db) |
 | Validation | `pydantic` | ✅ | LLM output schemas, API models |
 | HTTP | `requests`, `tqdm` | ✅ | Dataset downloads |
 | Data validation | `pandera` | 🔜 Stage 2 | DataFrame schemas |
