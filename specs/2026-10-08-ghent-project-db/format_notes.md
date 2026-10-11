@@ -144,6 +144,8 @@ after `strip()` and with the pattern `(Project Control - )?TP\d+`.
 
 ### 5.1 `Baseline Schedule`
 
+- **WBS = Work Breakdown Structure:** the project split into parts and sub-parts, numbered
+  by level (`1` = whole project, `1.2` = a part, `1.2.1` = a sub-part of `1.2`).
 - Row 1 = groups (`General`, `Relations`, `Baseline`, `Resource Demand`, `Baseline Costs`),
   **row 2 = header**, then data.
 - **First data row is ID 0 = the project itself** (name = project name, total duration, total
@@ -196,6 +198,102 @@ after `strip()` and with the pattern `(Project Control - )?TP\d+`.
 - **Check:** in projects with both sheets, the TP sheet's ID 0 row (PV, EV, AC, status date)
   equals the `Tracking Overview` row in **1,491 of 1,514 periods**. The 23 differences are all
   in C2019-11, whose ID 0 row has no PV/EV.
+
+#### 5.3.1 Explained simply, with a real example (C2011-05, sheet `TP3`)
+
+All values below were read from `C2011-05 Telecom System Agnes.xlsx` on 2026-10-10.
+
+**What is a TP sheet?** A **TP (tracking period)** is one progress check. On a certain date (the
+**status date**) someone looked at the project and wrote down, for **every activity**, how far
+it was. Each check gets its own sheet: `TP1`, `TP2`, `TP3`, … Agnes has 5 checks. Its sheet
+names are mixed even in one file: `Project Control - TP1`, then just `TP2` … `TP5`.
+
+**Layout of the sheet (rows 1–4):**
+
+| Row | What is in it | Agnes `TP3` |
+|---|---|---|
+| 1 | `TP Status Date` in cell C1, `TP Name` in cell F1 | 2011-06-27 17:00, `27/06, 2011` |
+| 2 | empty | |
+| 3 | group titles over the columns | `General`, `Baseline`, `Resource Demand`, `Baseline Costs`, `Tracking`, `Time`, `Costs` |
+| 4 | **header** (column names) | `ID`, `Name`, `Baseline Start`, … |
+| 5 | **ID 0 = the whole project** (totals) | `Telecom System Agnes` |
+| 6+ | one row per activity | IDs 1 … 21 |
+
+(Agnes's TP sheets have no `WBS`, `Predecessors` or `Successors` columns; the plan part starts at
+`Baseline Start`.)
+
+**The columns, in simple words:**
+
+| Column | Simple meaning |
+|---|---|
+| `Baseline Start`, `Baseline End`, `Duration`, `Total Cost`, … | **The plan**, copied from `Baseline Schedule` |
+| `Actual Start` | When the activity **really** started (empty = not started yet) |
+| `Actual Duration` | How long it has been running **until the status date** (`7d`) |
+| `Remaining Duration` | How much time is still needed (`8d`) |
+| `Actual Cost` | Money **really spent** until the status date |
+| `Remaining Cost` | Money still needed to finish it |
+| `PAC`, `PRC` | Not explained in the file. In every row of Agnes `TP3`, `PAC` = `Actual Cost` and `PRC` = `Remaining Cost` |
+| `PAC Dev`, `PRC Dev` | Not explained in the file. All 0 in Agnes `TP3` |
+| `Percentage Completed` | How much of the activity is done: `1` = 100 %, `0.4667` = 46.67 % |
+| `Tracking` | Status word: `Finished`, `Started` or `Not Started` |
+| `Earned Value (EV)` | Value of the work **really done** (not simply `Total Cost` × `Percentage Completed`: see ID 15 below) |
+| `Planned Value (PV)` | Value of the work that **should be done** by the status date, according to the plan |
+| 6 relative columns | The same progress as **percentages** (0–100): `Relative baseline duration`, `Relative actual duration`, `Percentage completed` (group `Time`), then `Relative baseline cost`, `Relative actual cost`, `Percentage completed` (group `Costs`). 56 files don't have them |
+
+**Three real activity rows from `TP3` (status date 2011-06-27 17:00):**
+
+| ID | Name | Planned | Tracking | % done | Actual Cost | Remaining Cost | EV | PV |
+|---|---|---|---|---|---|---|---|---|
+| 9 | delivering and installing glassfiber | 05-26 → 06-20, 18d, cost 20,750.05 | Finished | 100 % | 20,750.05 | 0 | 20,750.05 | 20,750.05 |
+| 12 | delivering and installing I55 PABX | 06-21 → 06-27, 5d, cost 14,027.28 | **Not Started** | 0 % | 0 | 14,027.28 | **0** | **14,027.28** |
+| 15 | assemble nurse call units 69 pieces | 06-17 → 07-07, 15d, cost 42,642 | Started (7d done, 8d left) | 46.67 % | 32,043.60 | 10,598.40 | 32,043.60 | 32,043.60 |
+
+How to read them (all three on the same check: sheet `TP3`, status date 2011-06-27 17:00):
+
+- **ID 9** finished on time, so EV = PV: done exactly as planned.
+- **ID 12** was planned to be **finished** by 06-27 17:00 (the status date), so the plan says
+  "14,027.28 of work should be done" (PV). But it has **not started**, so EV = 0. This activity
+  is **late**.
+- **ID 15** is in the middle: 7 of 15 days done = 46.67 %. The cost is not 46.67 % of 42,642
+  but 75.15 % (`Relative actual cost`). Arithmetic check: Fixed Cost 22,770 + 7/15 × Resource
+  Cost 19,872 = 22,770 + 9,273.60 = 32,043.60. So the fixed cost seems to be counted in full at
+  the start. EV is also 32,043.60, not 42,642 × 46.67 % = 19,899.60, so EV follows the same
+  rule. This is our reading of the numbers; the file does not say it.
+
+**The ID 0 row (project totals) of `TP3`:**
+
+| PV | EV | AC | % done |
+|---|---|---|---|
+| 143,433.17 | 129,405.89 | 129,405.89 | 71.70 % |
+
+- PV = the sum of PV over activities 1–21 = 143,433.17.
+- PV − EV = 143,433.17 − 129,405.89 = **14,027.28 = exactly activity 12**, the late one.
+  So the whole project is "behind" by the value of that one activity.
+- Here AC = EV: the money spent equals the value of the work done (no cost overrun).
+
+**What the "Check" sentence means:**
+
+The project totals are written **twice** in the file:
+
+1. in the **ID 0 row** of each TP sheet, and
+2. in the **`Tracking Overview`** sheet (one row per check).
+
+For Agnes `TP3`, both places say the same thing:
+
+| | Status date | PV | EV | AC |
+|---|---|---|---|---|
+| `TP3`, ID 0 row | 2011-06-27 17:00 | 143,433.17 | 129,405.89 | 129,405.89 |
+| `Tracking Overview`, row `27/06, 2011` | 2011-06-27 17:00 | 143,433.17 | 129,405.89 | 129,405.89 |
+
+We compared these two places for **all** projects that have both: **1,514 checks** in total.
+They are equal in **1,491**. The other **23** are all in one project, C2019-11, where the ID 0
+row of the TP sheets is empty (no PV/EV), so there was nothing to compare.
+
+**Why this matters:** the two places agree, so we can trust `Tracking Overview` for the
+project totals (group A). For group B there is no `Tracking Overview`, and the ID 0 row is
+empty too, so the totals must be computed from the activity rows (a Phase 4 task). The ID 15
+example shows this needs care: progress in time (46.67 %) and in cost (75.15 %) are not the
+same.
 
 ### 5.4 Which projects have tracking data
 

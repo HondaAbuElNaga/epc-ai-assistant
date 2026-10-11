@@ -704,6 +704,11 @@ data = load_ghent()   # .projects .activities .tracking .issues
 - 8.1 pytest (TDD, fixture builders);
 - 2.2 EVM (PV, EV, AC, SPI, CPI in the `tracking` table).
 
+**Later addition (2026-10-11):** `format_notes.md` §5.3.1 explains the TP sheets simply with a
+real example (C2011-05, sheet `TP3`, 2011-06-27): one late activity (ID 12, not started) makes
+PV − EV = 14,027.28 exactly; activity 15 shows fixed cost counted at the start (time 46.67 %,
+cost 75.15 %). §5.1 now defines WBS (owner's note, tidied).
+
 ---
 
 ## Template for new steps
