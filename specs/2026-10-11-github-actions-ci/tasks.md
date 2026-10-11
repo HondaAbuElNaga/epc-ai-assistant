@@ -22,11 +22,15 @@ Spec: [spec.md](spec.md) · Local commands inside the container (`docker compose
          job `secrets` (gitleaks, full history)
 - [x] 5. `uv run ruff check .`, `uv run ruff format .`, `uv run pytest`
          → 2026-10-11: ruff ✅, 97 passed, 3 deselected, coverage 86.98 %
-- [ ] 6. Push, open the pull request, check both jobs are ✅ and note the duration
-- [ ] 7. Proof of ❌ on a throwaway branch: a failing test, then a fake secret; delete the branch
-- [ ] 8. Protect `main` with `gh`: both jobs required before merge
-- [ ] 9. README CI badge
-- [ ] 10. Docs: DEVLOG step, LEARNING_GUIDE (CI, GitHub Actions, secret scanning), roadmap
+- [x] 6. Push, open the pull request, check both jobs are ✅ and note the duration
+         → PR #3, run `38098416486`: both ✅, 19 s (tests 17 s, secrets 5 s)
+- [x] 7. Proof of ❌ on a throwaway branch: a failing test, then a fake secret; delete the branch
+         → draft PR #4: failing test → tests ❌; made-up token → secrets ❌ (`github-pat`);
+           closed unmerged, branch deleted
+- [x] 8. Protect `main` with `gh`: both jobs required before merge
+         → required: tests, secrets; enforce_admins on; no force push, no deletion
+- [x] 9. README CI badge
+- [x] 10. Docs: DEVLOG step, LEARNING_GUIDE (CI, GitHub Actions, secret scanning), roadmap
           (Phase 9 CI item ticked, "Current position"), PROJECT_PLAN, tech-stack status ✅,
           spec status → done
 - [ ] 11. Merge the pull request into `main`

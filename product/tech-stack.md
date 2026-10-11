@@ -89,8 +89,8 @@
 | Tests | pytest, pytest-cov; markers `llm` (real API) and `eval` (golden sets) | ✅ |
 | Lint / format | ruff (line length 100; rules E, F, I, B, UP) | ✅ |
 | Type check | mypy | 🔜 optional |
-| CI | GitHub Actions (`.github/workflows/ci.yml`): `actions/checkout` v7.0.1 + `astral-sh/setup-uv` v10.3.0, pinned by commit SHA | 🔜 building (spec 2026-10-11-github-actions-ci) |
-| Secret scan | **gitleaks** 8.30.1 binary (MIT), downloaded in CI with a SHA-256 check; full git history. Not `gitleaks-action` (own EULA: license key for organisation accounts, no modifications) | 🔜 building (spec 2026-10-11-github-actions-ci) |
+| CI | GitHub Actions (`.github/workflows/ci.yml`): `actions/checkout` v7.0.1 + `astral-sh/setup-uv` v10.3.0, pinned by commit SHA; jobs `tests` + `secrets` required on `main` | ✅ (2026-10-11) |
+| Secret scan | **gitleaks** 8.30.1 binary (MIT), downloaded in CI with a SHA-256 check; full git history. Not `gitleaks-action` (own EULA: license key for organisation accounts, no modifications) | ✅ (2026-10-11) |
 | Deploy | Multi-stage Dockerfile (`prod`, `--no-dev`, non-root) → Hugging Face Spaces or Streamlit Community Cloud | 🔜 Stage 11 |
 
 ## Data sources

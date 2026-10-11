@@ -1,5 +1,7 @@
 # EPC Project Intelligence Assistant
 
+[![CI](https://github.com/HondaAbuElNaga/epc-ai-assistant/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/HondaAbuElNaga/epc-ai-assistant/actions/workflows/ci.yml)
+
 AI/ML and Generative AI toolkit for Engineering, Procurement & Construction (EPC) projects,
 built on real public data.
 

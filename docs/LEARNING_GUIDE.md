@@ -1096,23 +1096,80 @@ hand-aligned comments in `docs/03_evm_formulas.md`, so `pyproject.toml` has
 
 ## 8.6 GitHub Actions (CI)
 
-**What:** automatically runs lint and tests on GitHub on every push.
+**What:** **CI (continuous integration)** = a robot that runs the project's checks on a clean
+computer every time code is proposed or merged. **GitHub Actions** is GitHub's CI service: you
+describe the checks in a YAML file in `.github/workflows/`, and GitHub runs them and shows ✅ or
+❌ on the pull request.
 
-**Sketch** (`.github/workflows/ci.yml`):
+**Why:** a human can forget to run `ruff` or `pytest` before a commit; the robot can't. The
+clean computer also catches tests that secretly need a local file (our first clean run found
+that `data/raw/.gitkeep` was never committed). The green badge shows reviewers and employers
+that the project is tested.
+
+**Key concepts:**
+
+| Word | Meaning | In our `ci.yml` |
+|---|---|---|
+| Workflow | One YAML file = one automation | `.github/workflows/ci.yml`, named `CI` |
+| Trigger (`on:`) | When it runs | every pull request into `main`, every push to `main` |
+| Job | A group of steps on its own fresh machine (jobs run in parallel) | `tests` and `secrets` |
+| Runner | The machine | `ubuntu-latest` (not our Docker image: faster; `uv.lock` gives the same packages) |
+| Step | One command (`run:`) or a ready-made action (`uses:`) | checkout, setup-uv, `uv sync --locked`, ruff, pytest |
+| `permissions:` | What the workflow's token may do | `contents: read` only (least permission) |
+| Pinning | Fixing the exact version of each action | by **commit SHA**, with the version in a comment. A tag like `v7` can be moved to other code later; a SHA can't |
+| Branch protection | GitHub rule: merge only when the required checks are ✅ | `tests` + `secrets` required on `main`, also for admins |
+
+**`--locked` vs `--frozen`:** `uv sync --frozen` installs from `uv.lock` without checking it;
+`--locked` also **fails if `uv.lock` doesn't match `pyproject.toml`** (someone edited
+`pyproject.toml` and forgot `uv lock`). CI uses `--locked` to catch that.
+
+**Coverage gate:** `--cov-fail-under=70` makes pytest fail when tests run less than 70 % of
+`src/` (see 8.3). Without the gate, coverage is only a number nobody looks at.
+
+**Example** (the `tests` job, shortened):
 ```yaml
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-      - run: uv sync --frozen
-      - run: uv run ruff check .
-      - run: uv run pytest -m "not llm and not eval"
+- uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+  with: { version: "0.12.2", python-version: "3.12", enable-cache: true }
+- run: uv sync --locked
+- run: uv run ruff check .
+- run: uv run ruff format --check .     # only checks; never changes files in CI
+- run: uv run pytest -m "not network and not llm and not eval" --cov=src --cov-fail-under=70
 ```
 
-**Study:** https://docs.github.com/en/actions · https://docs.astral.sh/uv/guides/integration/github/
+**Proof that it works:** a check that never fails is useless. On a throwaway branch we pushed
+a failing test (→ `tests` ❌) and then a fake token (→ `secrets` ❌), then deleted the branch.
+
+**Where:** `.github/workflows/ci.yml` · spec `specs/2026-10-11-github-actions-ci/` · DEVLOG
+step 17 · run history: the **Actions** tab on GitHub.
+
+**Study:** https://docs.github.com/en/actions ·
+https://docs.astral.sh/uv/guides/integration/github/ ·
+https://docs.github.com/en/actions/security-for-github-actions/security-guides/security-hardening-for-github-actions
+(why to pin actions by SHA)
+
+### Secret scanning (gitleaks)
+
+**What:** a tool that searches the code **and every old commit** for things that look like
+secrets: API keys, tokens, passwords. **gitleaks** has hundreds of rules (e.g. `github-pat`
+matches the shape of a GitHub token).
+
+**Why the full history:** deleting a key in a new commit does not remove it from git. The old
+commit is still public on GitHub, and bots scan public repos for keys within minutes. So the
+`secrets` job checks out with `fetch-depth: 0` (all commits) and runs `gitleaks git`.
+
+**If it finds a real key:** first **revoke** it at the provider (make it invalid), then clean
+up. Removing it from git alone is not enough. A false alarm is handled with a documented
+allow-list entry, never by turning the scan off.
+
+**Why the binary and not `gitleaks-action`:** the gitleaks program is MIT-licensed. The
+official GitHub Action has its own license (a key for organisation accounts, no modifications).
+Downloading the pinned binary and checking its **SHA-256** against the release's
+`checksums.txt` is free for any account and proves the file wasn't swapped (see 1.10).
+
+**Run locally:** inside the container, after downloading the binary:
+`gitleaks git --redact --verbose .` (`--redact` hides the secret value in the output).
+
+**Study:** https://github.com/gitleaks/gitleaks
 
 ---
 
