@@ -12,6 +12,7 @@ import zipfile
 from pathlib import Path
 
 import pytest
+import requests
 
 from src.common.http import PoliteClient
 from src.datasets import pid
@@ -176,6 +177,41 @@ def test_download_restarts_when_server_ignores_range(tmp_path):
     c, _ = client({URL: FakeResponse(200, DATA)})  # 200 = full file, Range ignored
     pid.download(c, URL, dest, size=len(DATA), md5=DATA_MD5)
     assert dest.read_bytes() == DATA
+
+
+class BrokenResponse(FakeResponse):
+    """Sends `body`, then the connection breaks (like Zenodo's IncompleteRead on 2026-10-14)."""
+
+    def iter_content(self, chunk_size=1):
+        yield from super().iter_content(chunk_size)
+        raise requests.exceptions.ChunkedEncodingError("Connection broken: IncompleteRead")
+
+
+def test_download_resumes_automatically_after_broken_connection(tmp_path):
+    calls = {"n": 0}
+    full = ranged(DATA)
+
+    def flaky(headers):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return BrokenResponse(200, DATA[:3000])
+        return full(headers)
+
+    c, session = client({URL: flaky})
+    dest = tmp_path / "file.bin"
+    result = pid.download(c, URL, dest, size=len(DATA), md5=DATA_MD5)
+    assert session.calls[1][1].get("Range") == "bytes=3000-"  # continued, not restarted
+    assert dest.read_bytes() == DATA
+    assert result.md5 == DATA_MD5
+
+
+def test_download_gives_up_after_max_attempts_and_keeps_part(tmp_path):
+    c, session = client({URL: lambda h: BrokenResponse(200, b"")})
+    dest = tmp_path / "file.bin"
+    with pytest.raises(requests.exceptions.ChunkedEncodingError):
+        pid.download(c, URL, dest, size=len(DATA), attempts=3)
+    assert len(session.calls) == 3
+    assert (tmp_path / "file.bin.part").exists()  # the next run continues from here
 
 
 def test_download_complete_part_file_is_finished_without_body(tmp_path):

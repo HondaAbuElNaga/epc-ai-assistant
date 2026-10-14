@@ -31,6 +31,7 @@ from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
 
 import requests
+from requests.exceptions import ChunkedEncodingError
 from tqdm import tqdm
 
 from src.common import config
@@ -169,13 +170,31 @@ def download(
     size: int | None = None,
     md5: str | None = None,
     force: bool = False,
+    attempts: int = 10,
 ) -> DownloadResult:
     """Download `url` to `dest`, resumable. A file with the final name is always complete:
     data goes to `<dest>.part` and is renamed only after the size and MD5 (when known) match.
-    An existing `dest` of the right size is skipped (it was verified before its rename)."""
+    An existing `dest` of the right size is skipped (it was verified before its rename).
+
+    A connection that breaks mid-file (Zenodo dropped one after 283 MB on 2026-10-14) is
+    retried up to `attempts` times, each time continuing from the `.part` file. After the last
+    attempt the error is raised and the `.part` file is kept for the next run."""
     if not force and dest.is_file() and (size is None or dest.stat().st_size == size):
         return DownloadResult("skipped", dest.stat().st_size)
 
+    for attempt in range(1, attempts + 1):
+        try:
+            return _download_once(client, url, dest, size=size, md5=md5)
+        except (requests.ConnectionError, requests.Timeout, ChunkedEncodingError) as exc:
+            if attempt == attempts:
+                raise
+            log.warning("%s: %s; resuming (attempt %d/%d)", dest.name, exc, attempt + 1, attempts)
+    raise AssertionError("unreachable")
+
+
+def _download_once(
+    client: PoliteClient, url: str, dest: Path, *, size: int | None, md5: str | None
+) -> DownloadResult:
     dest.parent.mkdir(parents=True, exist_ok=True)
     part = dest.with_name(dest.name + ".part")
     offset = part.stat().st_size if part.is_file() else 0
