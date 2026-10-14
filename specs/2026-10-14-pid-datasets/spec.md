@@ -1,7 +1,7 @@
 # Spec: P&ID datasets (PID2Graph + Dataset-P&ID download)
 
 **Roadmap item:** Phase 2, "PID2Graph + Dataset-P&ID download"
-**Status:** draft (2026-10-14), waiting for the owner's approval
+**Status:** approved (2026-10-14), with the owner's decisions below
 **Branch:** `spec/2026-10-14-pid-datasets`
 **Related:** PROJECT_PLAN Stage 2 (download) and Stage 6 (Module C, P&ID reader)
 
@@ -170,7 +170,14 @@ link points to.
     must use the same license. OPEN100's own terms are unclear, so its drawings are used for
     research and evaluation only, with credit, and never republished.
 
-## Open questions (owner decides; my recommendation first)
+## Decisions (owner, 2026-10-14)
+1. PID2Graph: extract **`Complete/` only** and keep the zip (Patched can be extracted later).
+2. Dataset-P&ID: download **the 500 annotation folders + `image_2.tar.gz` + `mask.tar.gz`**.
+3. Wording: **fix it** in `product/mission.md`, PROJECT_PLAN and `docs/stages/stage_02_data.md`
+   ("12 real P&IDs (PID2Graph OPEN100) + 750 synthetic"). The Phase 7 evaluation split stays
+   a note for the Phase 7 spec.
+
+## Open questions (as asked; answered above)
 1. **Which parts of PID2Graph to extract?**
    - **Recommended: `Complete/` only (about 3.5 GB) and keep the zip.** Phase 7 plans its own
      tiling (1024 px with overlap), so the authors' patches (1500 px, about 10 GB) are not

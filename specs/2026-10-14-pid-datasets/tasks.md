@@ -6,7 +6,8 @@ container (`docker compose exec dev ...`).
 Size note: the roadmap says `XS`. With a 9.3 GB download and about 3,500 Drive files it is
 closer to `S`, though most of that time is waiting on downloads.
 
-- [ ] 1. Owner approves the spec and answers Open questions 1–3; record the answers in the spec
+- [x] 1. Owner approves the spec and answers Open questions 1–3; record the answers in the spec
+         Done 2026-10-14: Complete/ only; annotations + images; wording fixed (spec "Decisions")
 - [ ] 2. Save the test fixtures: a trimmed Drive folder-view page (2 subfolders + 1 archive) in
          `tests/fixtures/`
 - [ ] 3. Write `tests/test_pid_download.py` (offline, fake session) and see it fail:
