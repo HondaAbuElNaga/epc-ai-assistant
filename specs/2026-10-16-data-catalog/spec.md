@@ -1,7 +1,7 @@
 # Spec: Data catalog + checksums
 
 **Roadmap item:** Phase 2, "`data/DATA_CATALOG.md` + checksums"
-**Status:** draft (2026-10-16), waiting for the owner's approval
+**Status:** approved (2026-10-16) with the owner's decisions below
 **Branch:** `spec/2026-10-16-data-catalog`
 **Related:** PROJECT_PLAN Stage 2, process step 4 and the testing bullet "checksums are stored in
 `data/checksums.json` and match"
@@ -62,10 +62,12 @@ What the existing records do **not** cover:
    file; UFGS: 434 retired sections not downloaded; PID2Graph `Patched/` not extracted.
 4. `checksums.json` layout: one entry per file, keyed by path relative to `data/raw/` with
    forward slashes (same on Windows and Linux), value `{"bytes": int, "sha256": str}`, plus a
-   header with `created_at` (UTC) and per-dataset totals. Keys are sorted, so a re-run with
-   unchanged data gives an identical file (clean `git diff`).
+   header with `updated_at` (UTC) and per-dataset totals. Keys are sorted, and the file is only
+   rewritten when an entry changed, so a re-run with unchanged data gives an identical file
+   (clean `git diff`; a new timestamp alone would make a diff).
 5. Skipped files: `.gitkeep`, unfinished downloads (`*.part`), and the download records
-   themselves (`manifest.json`, `download.json`, which change on every re-run).
+   themselves (`manifest.json`, `download.json`, and the cached Drive listing
+   `drive_listing.json`), which change on every re-run.
 6. `--verify` reports four lists: **missing** (in the file, not on disk), **changed** (size or
    hash differs), **new** (on disk, not in the file) and **ok** count. Exit code 0 only when
    missing and changed are empty; new files are a warning.
@@ -110,7 +112,12 @@ What the existing records do **not** cover:
   - Line endings are not a risk: `zipfile`/`tarfile` write the bytes exactly as stored, so the
     hashes are the same on Windows and Linux.
 
-## Open questions (for the owner)
+## Owner's decisions (2026-10-16)
+1. Checksums: **(a) every file** under `data/raw/`.
+2. Catalog: written **by hand**, numbers copied from the script output.
+3. OSHA/NYC: listed as "not downloaded (optional)".
+
+## Open questions (as asked)
 1. **What gets a checksum?**
    (a) every file under `data/raw/`, about 7,000 entries, ~1 MB JSON. Catches a damaged
    extracted file. **Recommended.**

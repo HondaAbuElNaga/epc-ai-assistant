@@ -1,6 +1,7 @@
 # Tasks: Data catalog + checksums
 
-- [ ] 1. Owner approves `spec.md` and answers the open questions; status → `approved`
+- [x] 1. Owner approves `spec.md` and answers the open questions; status → `approved`
+      → approved 2026-10-16: every file, catalog by hand, OSHA/NYC listed as not downloaded
 - [ ] 2. Write `tests/test_checksums.py` (temporary folders, no real data): write + verify ok,
       changed byte, missing file, new file (warning, exit 0), skipped files, `/` paths,
       identical output on a second write, `--quick` size-only check, `--dataset` filter.
