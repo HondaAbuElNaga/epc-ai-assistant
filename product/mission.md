@@ -45,9 +45,10 @@ using AI/ML and Generative AI built and evaluated on **real public data**.
 
 ## Differentiators
 
-- **Real data, not toy data:** UFGS specifications, 133 real projects from the Ghent OR&S
-  database, real P&IDs (PID2Graph). Synthetic data is used only where companies never publish
-  (RFIs, NCRs, bids), and it's always labeled as synthetic.
+- **Real data, not toy data:** UFGS specifications, 231 real projects from the Ghent OR&S
+  database (DSLIB v3.4), 12 real P&IDs (PID2Graph OPEN100) next to 750 synthetic ones. Other
+  synthetic data is used only where companies never publish (RFIs, NCRs, bids), and it's always
+  labeled as synthetic.
 - **Measured, not claimed:** every module has a golden set and published metrics (Recall@5,
   macro-F1, MAE, mAP, agent task success).
 - **Trustworthy by design:** citations for every factual claim; the LLM never does arithmetic

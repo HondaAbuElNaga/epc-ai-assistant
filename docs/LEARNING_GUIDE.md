@@ -21,7 +21,7 @@ For each one:
 |---|---|
 | Stage 0 (setup) | 8.7 Spec-driven development · 1.1 Python · 1.2 Git & GitHub · 1.3 Docker · 1.4 Docker Compose · 1.5 uv · 8.1 pytest · 8.4 ruff |
 | Stage 1 (EPC) | 2.1 EPC basics · 2.2 Earned Value Management |
-| Stage 2 (data) | 1.6 pandas & numpy · 1.7 Jupyter · 1.8 HTTP & requests · 1.9 Web data acquisition · 1.10 Data integrity · 1.11 Web page vs API · 1.12 Reading messy Excel files · 6.1 Data validation |
+| Stage 2 (data) | 1.6 pandas & numpy · 1.7 Jupyter · 1.8 HTTP & requests · 1.9 Web data acquisition · 1.10 Data integrity · 1.11 Web page vs API · 1.12 Reading messy Excel files · 1.13 Untrusted files · 6.1 Data validation |
 | Stage 3 (RAG) | Part 3 (all of 3.1 → 3.12) |
 | Stage 4 (documents) | 4.1 → 4.6 · 3.5 Structured output · 3.6 Pydantic |
 | Stage 5 (project controls) | 2.2 EVM · 4.4 Tree models / XGBoost · 4.5 Cross-validation · 4.6 Regression metrics · 6.1 pandera |
@@ -324,8 +324,40 @@ print(digest.hexdigest())
 
 **Where:** `src/datasets/ufgs.py` (`download_section`, `manifest.json`).
 
+### Big files: HTTP Range, resume and auto-retry (P&ID datasets)
+
+A 9.3 GB file over a slow server **will** be interrupted: Zenodo dropped our connection after
+283 MB on 2026-10-14. Three ideas make that harmless:
+
+- **HTTP Range request:** the header `Range: bytes=283115520-` asks the server for the file *from
+  that byte on*. A server that supports it answers **206 Partial Content** with a
+  `Content-Range: bytes 283115520-…/9303633645` header. A server that ignores it answers
+  **200** with the whole file, so you must start over. Check which one you got.
+- **Resume from `.part`:** the `.part` file's size is exactly the byte to continue from.
+- **Auto-retry:** catch the "connection broken" errors (`ChunkedEncodingError`,
+  `ConnectionError`, `Timeout`) and try again a few times. Each try continues from the `.part`
+  file. Without this, a person has to restart the script after every drop.
+- **Verify at the end, not per piece:** compare the total size and the **MD5** the source
+  publishes (Zenodo gives one per file). The hash covers the old part *and* the new bytes.
+- **Range requests can also *peek*:** a zip stores its file list at the very end, so reading only
+  the last few MB lists all 74,655 files of the 9.3 GB PID2Graph zip without downloading it.
+
+```python
+offset = part.stat().st_size if part.exists() else 0
+headers = {"Range": f"bytes={offset}-"} if offset else {}
+r = session.get(url, headers=headers, stream=True)
+if r.status_code == 200:        # Range ignored: the server sent everything
+    offset = 0
+with part.open("ab" if offset else "wb") as f:
+    for chunk in r.iter_content(1024 * 1024):
+        f.write(chunk)
+```
+
+**Where:** `src/datasets/pid.py` (`download`, `_download_once`).
+
 **Study:** https://docs.python.org/3/library/hashlib.html ·
-https://docs.python.org/3/library/pathlib.html#pathlib.Path.replace
+https://docs.python.org/3/library/pathlib.html#pathlib.Path.replace ·
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
 
 ---
 
@@ -425,6 +457,57 @@ parse_duration("1d 2h")     # (1.0, 2.0): days and hours kept apart
 **Study:** https://openpyxl.readthedocs.io/en/stable/tutorial.html ·
 https://openpyxl.readthedocs.io/en/stable/optimized.html ·
 https://pandas.pydata.org/docs/reference/api/pandas.read_excel.html
+
+---
+
+## 1.13 Untrusted files: archives and pickle
+
+**What:** downloaded files are *input from strangers*. Some file formats can do harm just by
+being unpacked or opened, so they need safe handling.
+
+**Why here:** the P&ID datasets arrive as a `.zip`, two `.tar.gz` archives and 3,500 `.npy`
+files from a public Google Drive folder.
+
+**Key concepts:**
+- **Zip slip:** an archive member named `../../somewhere/file` (or with `\` on Windows) gets
+  written **outside** the target folder when unpacked. Defence: check every member path
+  *before* extracting anything (no absolute paths, no `..`, no backslashes, no drive letters).
+- **Safe tar (`filter="data"`):** since Python 3.12, `tar.extractall(path, filter="data")` blocks
+  paths outside the folder, links to outside, device files and odd permissions.
+- **Extract to `.part`, then rename:** a crash never leaves a half-filled final folder (the same
+  atomic idea as for downloads, 1.10).
+- **Pickle runs code.** Python's `pickle` can call any function while loading. A `.npy` file with
+  `dtype=object` is a pickle inside. Defences, in order:
+  1. `numpy.load(f, allow_pickle=False)`: plain arrays load, pickled ones raise an error.
+  2. If a file needs pickle, **read it without running it**: `pickletools.genops(data)` lists the
+     instructions. The `GLOBAL` / `STACK_GLOBAL` instructions show every function a load would
+     call. In our 2,000 pickled `.npy` files these were only `numpy.core.multiarray._reconstruct`,
+     `numpy.ndarray` and `numpy.dtype`.
+  3. If you load it, use a **restricted unpickler** that allows exactly those functions and
+     refuses all others. (For this project, that is the owner's decision, Phase 7.)
+
+**Example:**
+```python
+import numpy as np, pickletools
+from numpy.lib import format as npf
+
+try:
+    a = np.load(path, allow_pickle=False)           # safe
+except ValueError:                                  # "Object arrays cannot be loaded..."
+    with open(path, "rb") as f:
+        npf.read_magic(f); npf.read_array_header_1_0(f)
+        for op, arg, pos in pickletools.genops(f.read()):   # lists, never runs
+            if op.name in ("GLOBAL", "STACK_GLOBAL"):
+                print("would call:", arg)
+```
+
+**Where:** `src/datasets/pid.py` (`_check_member`, `extract_zip`, `extract_tar`);
+`specs/2026-10-14-pid-datasets/format_notes.md` §4.2.
+
+**Study:** https://docs.python.org/3/library/tarfile.html#extraction-filters ·
+https://docs.python.org/3/library/pickle.html (the red warning box) ·
+https://docs.python.org/3/library/pickletools.html ·
+https://numpy.org/doc/stable/reference/generated/numpy.load.html
 
 ---
 
@@ -934,7 +1017,25 @@ G.add_edge("P-101", "V-12", kind="pipe")
 list(G.neighbors("P-101"))
 ```
 
-**Study:** https://networkx.org/documentation/stable/tutorial.html
+### GraphML (how PID2Graph stores its graphs)
+
+GraphML is an XML text format for graphs. First it declares **keys** (attribute names and types),
+then it lists `<node>`s and `<edge>`s that use them:
+```xml
+<key id="d0" for="node" attr.name="label" attr.type="string"/>
+<key id="d9" for="edge" attr.name="edge_label" attr.type="string"/>
+<node id="valve3"><data key="d0">valve</data> ... xmin/ymin/xmax/ymax ...</node>
+<edge source="valve3" target="connector12"><data key="d9">solid</data></edge>
+```
+**Trap seen in PID2Graph:** the key IDs (`d1`, `d3`, …) are **not** fixed. They mean different
+attributes in different files. Always map ID → `attr.name` per file (NetworkX's `read_graphml`
+does this for you). The coordinates also come as `long` in some nodes and `double` in others.
+
+**Where:** `data/raw/pid/pid2graph/PID2Graph/Complete/*/*.graphml`;
+`specs/2026-10-14-pid-datasets/format_notes.md` §3.
+
+**Study:** https://networkx.org/documentation/stable/tutorial.html ·
+http://graphml.graphdrawing.org/primer/graphml-primer.html
 
 ---
 

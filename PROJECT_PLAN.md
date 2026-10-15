@@ -228,14 +228,14 @@ Assumes 3–4 hours a day.
 | UFGS specifications (PDF) | https://www.wbdg.org/dod/ufgs | `data/raw/ufgs/` | A, B |
 | Ghent OR&S real project database, DSLIB v3.4 (231 projects; 117 with EVM tracking periods) | https://github.com/MarioVanhoucke/DSLIB-Dynamic-Scheduling-Empirical-Project-Library (release zip; listed on https://www.projectmanagement.ugent.be/research/data) | `data/raw/project_controls/ghent/` | D |
 | NYC capital projects | NYC Open Data (search "Capital Projects") | `data/raw/project_controls/nyc/` | D (extra) |
-| PID2Graph (real P&IDs with annotations) | https://zenodo.org/records/14803338 | `data/raw/pid/pid2graph/` | C |
-| Dataset-P&ID (500 synthetic P&IDs) | Link in arXiv paper 2109.03794 | `data/raw/pid/dataset_pid/` | C |
+| PID2Graph (12 real OPEN100 P&IDs + 750 synthetic, graph annotations) | https://zenodo.org/records/14803338 | `data/raw/pid/pid2graph/` | C |
+| Dataset-P&ID (500 synthetic P&IDs, 32 symbol types) | Google Drive folder linked in arXiv paper 2109.03794 | `data/raw/pid/dataset_pid/` | C |
 | OSHA Severe Injury Reports | osha.gov, Severe Injury Reports | `data/raw/osha/` | B (bonus) |
 
 **Process:**
 1. Write `src/datasets/ufgs.py` (run: `python -m src.datasets.ufgs`): read the section list from the WBDG sitemap, ask the WBDG API which sections are active and where their current PDF is, download only active sections (divisions 01, 03, 05, 22, 23, 26, 33 + process divisions 40, 41, 42, 43, 44, 46), use polite request delays, skip files that already exist, and write `data/raw/ufgs/manifest.json`. Spec: `specs/2026-10-07-ufgs-download/`.
 2. Download the Ghent DSLIB release zip from GitHub (no form needed) and unzip it. Then **inspect the file format before writing any code**. Done 2026-10-10: `src/datasets/ghent.py` (run: `python -m src.datasets.ghent`), spec `specs/2026-10-08-ghent-project-db/` (format notes, groups, results).
-3. Download PID2Graph from Zenodo.
+3. Download PID2Graph from Zenodo and Dataset-P&ID from Google Drive. Done 2026-10-15: `src/datasets/pid.py` (run: `python -m src.datasets.pid`), spec `specs/2026-10-14-pid-datasets/` (format notes). Only 12 PID2Graph drawings are real (OPEN100); the rest are synthetic.
 4. Write `data/DATA_CATALOG.md`: for each dataset record the source URL, download date, license, file count, size and known issues.
 5. Write a profiling notebook per dataset (`notebooks/00_profile_<dataset>.ipynb`) covering counts, missing values, distributions and sample records.
 
@@ -721,7 +721,7 @@ one risk (data leaving to an API).
 **Stage 2: Data**
 - [x] UFGS downloaded (2026-10-08: 271 active PDFs, 13 divisions)
 - [x] Ghent database downloaded and inspected
-- [ ] PID2Graph and Dataset-P&ID downloaded
+- [x] PID2Graph and Dataset-P&ID downloaded (2026-10-15: 12 real + 750 synthetic; 500 originals with 32-class labels)
 - [ ] OSHA data downloaded
 - [ ] `DATA_CATALOG.md` and profiling notebooks
 - [ ] Data integrity tests

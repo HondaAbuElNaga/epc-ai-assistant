@@ -14,8 +14,9 @@ models** (Phase 10) and harden for **confidential data** (Phase 11).
 Phase 2 in progress: UFGS downloaded (2026-10-08, 271 active PDFs in 13 divisions) · Ghent DSLIB
 v3.4 downloaded, inspected and loaded (2026-10-10, 231 projects, 117 with EVM tracking) · CI
 built early (Phase 9 item, 2026-10-11): every pull request into `main` must pass ruff, pytest
-with a 70 % coverage gate and a gitleaks secret scan · **next: a spec for PID2Graph +
-Dataset-P&ID download**.
+with a 70 % coverage gate and a gitleaks secret scan · PID2Graph + Dataset-P&ID downloaded and
+inspected (2026-10-16; only 12 drawings are real) · **next: a spec for `data/DATA_CATALOG.md` +
+checksums** (OSHA/NYC stay optional).
 
 ---
 
@@ -49,7 +50,7 @@ Dataset-P&ID download**.
 
 - [x] UFGS download script: active sections of divisions 01, 03, 05, 22, 23, 26, 33 + process 40–46 (271 PDFs, 2026-10-08) `S`
 - [x] Ghent project database: download, inspect format, loader (DSLIB v3.4: 231 projects, groups A 117 / B 41 / C 73, 2026-10-10) `S`
-- [ ] PID2Graph + Dataset-P&ID download `XS`
+- [x] PID2Graph + Dataset-P&ID download (12 real + 750 synthetic drawings; 500 originals with 32-class labels; [spec](../specs/2026-10-14-pid-datasets/spec.md), 2026-10-16) `XS`
 - [ ] OSHA + NYC capital projects (optional) `XS`
 - [ ] `data/DATA_CATALOG.md` + checksums `XS`
 - [ ] Profiling notebook per dataset `S`

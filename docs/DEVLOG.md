@@ -29,6 +29,7 @@ New steps are added at the bottom. Technologies mentioned here are explained in
 | 15 | 2026-10-08 | Process | One git branch per spec, specs in plain Markdown |
 | 16 | 2026-10-10 | Stage 2 | Ghent DSLIB: download, inspect, loader (231 projects) |
 | 17 | 2026-10-11 | Stage 10 | GitHub Actions CI: tests, 70 % coverage gate, gitleaks, protected `main` |
+| 18 | 2026-10-16 | Stage 2 | P&ID datasets: PID2Graph + Dataset-P&ID download and inspection |
 
 ---
 
@@ -790,6 +791,84 @@ them on a clean machine every time, blocks a red merge, and shows a badge on the
 - 8.3 Coverage;
 - 1.10 Data integrity (checksums);
 - 9.3 Secrets management.
+
+---
+
+## Step 18: P&ID datasets: PID2Graph + Dataset-P&ID download and inspection
+
+**What:** the two public P&ID datasets for Module C (P&ID reader) are downloaded, checked and
+described (spec `2026-10-14-pid-datasets`):
+- **PID2Graph** (Zenodo): one 9.3 GB zip, MD5-checked; only `Complete/` extracted (owner
+  decision): 500 + **12 real (OPEN100)** + 250 drawings, each a picture + a `.graphml` graph.
+- **Dataset-P&ID** (Google Drive, Paliwal et al. 2021): 500 synthetic drawings, 500 masks and
+  500 folders × 7 `.npy` annotation files (32 symbol types, text, pipes, tables).
+- `format_notes.md` describes what is really inside, with a plain-language guide first.
+
+**Why:** Module C needs labelled drawings to train and test on. Checking the real files first
+(no guessing) showed facts that change the plan: only 12 drawings are real, symbols in the real
+drawings are much smaller, and 4 of the 7 annotation types need pickle.
+
+**How:**
+1. **Research before the spec** (2026-10-14): Zenodo API (size, MD5, license), both papers
+   (`pdftotext`, PDF link annotations for the Drive URL), the Drive folder page. The zip's table
+   of contents was read **without downloading it**: a zip keeps its file list at the end, so a
+   few HTTP Range requests were enough (74,655 entries, 13.45 GB unzipped).
+2. Tests first: 24 offline tests with a fake HTTP session and trimmed real Drive pages; they
+   failed at import, then `src/datasets/pid.py` made them pass.
+3. Real runs (in the background):
+   ```bash
+   docker compose exec dev uv run python -m src.datasets.pid --only pid2graph
+   docker compose exec dev uv run python -m src.datasets.pid --only dataset-pid
+   docker compose exec dev uv run python -m src.datasets.pid      # re-run: skips everything
+   ```
+4. Inspection (task 9): image headers read with `struct`, `.graphml` with `xml.etree`, `.npy` with
+   `numpy.load(allow_pickle=False)`, pickled files listed with `pickletools.genops` (no
+   execution).
+
+**Files:**
+
+| File | Change |
+|---|---|
+| `src/datasets/pid.py` | New: resumable MD5-checked download, auto-retry, Drive folder parser + cached listing, safe zip/tar extraction, manifests |
+| `tests/test_pid_download.py` | New: 26 offline tests |
+| `tests/fixtures/drive_folder_root.html`, `drive_folder_0.html` | Trimmed copies of the real Drive pages |
+| `specs/2026-10-14-pid-datasets/` | `spec.md`, `tasks.md`, `format_notes.md` |
+| `product/mission.md` | "real P&IDs" → "12 real P&IDs (OPEN100) next to 750 synthetic"; Ghent count 133 → 231 |
+| `product/tech-stack.md`, `PROJECT_PLAN.md`, `docs/stages/stage_02_data.md`, `product/roadmap.md` | Real licenses, wording, ticks, "Current position" |
+| `docs/LEARNING_GUIDE.md` | 1.10 extended (Range, auto-retry); new 1.13 untrusted files; 5.6 GraphML |
+
+**Verify (real results):**
+- PID2Graph: 9,303,633,645 bytes, MD5 `90f782220de97e7e249d2595c49ddc1c` = Zenodo's.
+  `Complete/`: Dataset PID 500 `.png` + 500 `.graphml`, OPEN100 12 + 12, Synthetic 250 `.jpg` +
+  250 `.graphml` (= the zip listing).
+- Dataset-P&ID: 3,500 `.npy`, 0 missing, 0 extra; `image_2.tar.gz` 968,795,855 bytes (500 `.jpg`),
+  `mask.tar.gz` 6,046,912 bytes (500 `.png`).
+- Full re-run: 33 s, 0 downloads, 0 files extracted.
+- `ruff check` clean; `pytest`: 124 passed, 2 deselected; coverage 88 %.
+
+**Problems & fixes:**
+1. **Zenodo dropped the connection at 283 MB** (`IncompleteRead`); Drive did the same to
+   `image_2.tar.gz` at 884 MB. Resume from `.part` worked, but the script stopped. Fix:
+   `download()` now retries up to 10 times, each time continuing with a Range request (2 new
+   tests, commit `ae89c3b`). Speed varied from 180 kB/s to 1.1 MB/s; parallel requests were not
+   used, to stay polite to a free server.
+2. **Background jobs stopped for low memory.** Claude Code stopped the Windows-side
+   `docker compose exec` commands, but the downloads **inside the container kept running** and
+   finished. Lesson: the container process and the terminal that started it are separate things.
+3. **Extracting PID2Graph took about 11 h** (1,524 files) after a fast download. Cause not
+   verified (writes from Docker into a Windows folder, or the closed log pipe).
+4. **First graphml count was wrong:** key IDs (`d1`, `d3`, …) mean different things in different
+   files, and the line label key is `edge_label`. Fixed by mapping IDs per file.
+5. **A size range in the first draft of the notes was wrong** (OPEN100 widths). Caught by
+   re-checking before committing; the real range is 1,994–3,342 px.
+6. **Open:** drawing N in PID2Graph may not be drawing N in the original (§6 of the format
+   notes). Until checked, the two datasets are never combined by number.
+7. **Review skipped:** task 11 (3 subagent reviewers) was skipped at the owner's request.
+
+**Learn:**
+- LEARNING_GUIDE 1.10 Data integrity (HTTP Range, resume, auto-retry);
+- 1.13 Untrusted files (zip slip, safe tar, pickle);
+- 5.6 Graphs & NetworkX (GraphML).
 
 ---
 

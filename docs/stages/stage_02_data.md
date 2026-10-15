@@ -16,8 +16,8 @@ memory. Download it, inspect it, then write down what you saw.
 |---|---|---|---|---|---|
 | 1 | UFGS specifications (PDF), active sections of divisions 01, 03, 05, 22, 23, 26, 33, 40, 41, 42, 43, 44, 46 | https://www.wbdg.org/dod/ufgs | `data/raw/ufgs/` | A, B | done 2026-10-08: 271 PDFs, 37.6 MB ([spec](../../specs/2026-10-07-ufgs-download/spec.md)) |
 | 2 | Ghent OR&S real project database (EVM data) | https://www.projectmanagement.ugent.be/research/data | `data/raw/project_controls/ghent/` | D | done 2026-10-10: DSLIB v3.4, 231 projects (A 117 tracking ready, B 41 raw progress, C 73 plan only), loader `src/datasets/ghent.py` ([spec](../../specs/2026-10-08-ghent-project-db/spec.md), [format notes](../../specs/2026-10-08-ghent-project-db/format_notes.md)) |
-| 3 | PID2Graph (real P&IDs with annotations) | https://zenodo.org/records/14803338 | `data/raw/pid/pid2graph/` | C | not started |
-| 4 | Dataset-P&ID (synthetic P&IDs) | link in arXiv paper 2109.03794 | `data/raw/pid/dataset_pid/` | C | not started |
+| 3 | PID2Graph (12 real OPEN100 P&IDs + 750 synthetic, graph annotations) | https://zenodo.org/records/14803338 | `data/raw/pid/pid2graph/` | C | done 2026-10-15: 9.3 GB zip (MD5 checked), `Complete/` extracted: 500 + 12 + 250 drawings ([spec](../../specs/2026-10-14-pid-datasets/spec.md), [format notes](../../specs/2026-10-14-pid-datasets/format_notes.md)) |
+| 4 | Dataset-P&ID (500 synthetic P&IDs, 32 symbol types) | Google Drive folder linked in arXiv paper 2109.03794 | `data/raw/pid/dataset_pid/` | C | done 2026-10-15: 500 × 7 `.npy` annotations, 500 images, 500 masks (same spec) |
 | 5 | OSHA Severe Injury Reports, NYC capital projects (optional) | osha.gov, NYC Open Data | `data/raw/osha/`, `data/raw/project_controls/nyc/` | B, D (extra) | optional |
 
 UFGS comes first: it feeds Module A, the first core module (Phase 3).
@@ -78,7 +78,7 @@ versions go to `data/processed/`.
 
 - [x] UFGS downloaded, manifest complete, counts recorded in the DEVLOG
 - [x] Ghent database downloaded, format inspected, loader written
-- [ ] PID2Graph + Dataset-P&ID downloaded
+- [x] PID2Graph + Dataset-P&ID downloaded
 - [ ] `data/DATA_CATALOG.md` + `data/checksums.json`
 - [ ] Profiling notebook per dataset
 - [ ] `tests/test_data_integrity.py` passes
