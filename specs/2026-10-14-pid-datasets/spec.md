@@ -132,16 +132,16 @@ link points to.
   - `specs/2026-10-14-pid-datasets/format_notes.md`
 
 ## Acceptance criteria
-- [ ] `PID2Graph.zip` is on disk: 9,303,633,645 bytes, MD5 `90f782220de97e7e249d2595c49ddc1c`.
-- [ ] The extracted PID2Graph folders have the counts from the zip listing: 500 + 12 + 250
+- [x] `PID2Graph.zip` is on disk: 9,303,633,645 bytes, MD5 `90f782220de97e7e249d2595c49ddc1c`.
+- [x] The extracted PID2Graph folders have the counts from the zip listing: 500 + 12 + 250
       complete drawings, each with an image and a `.graphml` (plus the patched counts, if
       Patched is extracted).
-- [ ] Dataset-P&ID: 500 folders × 7 `.npy` files on disk (or each missing one listed in the
+- [x] Dataset-P&ID: 500 folders × 7 `.npy` files on disk (or each missing one listed in the
       manifest); the chosen archives are downloaded and extracted.
-- [ ] A second run of `python -m src.datasets.pid` downloads nothing and finishes quickly.
-- [ ] Unit tests pass offline: resume with `Range`, MD5 mismatch → error and no final file,
+- [x] A second run of `python -m src.datasets.pid` downloads nothing and finishes quickly.
+- [x] Unit tests pass offline: resume with `Range`, MD5 mismatch → error and no final file,
       zip-slip member rejected, skip existing, Drive folder-view parser, manifest contents.
-- [ ] `format_notes.md` records the real image sizes, graphml node/edge attributes and label
+- [x] `format_notes.md` records the real image sizes, graphml node/edge attributes and label
       values, and `.npy` shapes/dtypes (or "needs pickle"). Each fact was checked on the files.
 - [ ] `ruff check`, `ruff format`, `pytest` are clean, with coverage ≥ 70 % (CI gate).
 

@@ -36,9 +36,13 @@ closer to `S`, though most of that time is waiting on downloads.
          mask = 500 .png (`<n>_mask.png`)
 - [x] 8. Second run downloads nothing (skip check)
          Done 2026-10-15: full run (both datasets) in 33 s; 0 downloads, 0 files extracted
-- [ ] 9. Inspect the files and write `format_notes.md`: image sizes, graphml attributes + label
+- [x] 9. Inspect the files and write `format_notes.md`: image sizes, graphml attributes + label
          values, `.npy` shapes/dtypes (`allow_pickle=False`; `pickletools` if pickle is needed),
          what `image_2` and `mask` contain
+         Done 2026-10-16: format_notes.md. Key findings: graphml key IDs differ per file; 501 bad
+         boxes, all `background`; 4 of 7 .npy types (symbols, lines, linker, words) need pickle →
+         NOT loaded; pickletools: only 3 NumPy imports, nothing unsafe. Open: drawing N in
+         PID2Graph = drawing N in the original? Not verified (§6); mask contents not checked yet
 - [ ] 10. Docs: `product/tech-stack.md` data-source rows (real licenses), mission/PROJECT_PLAN/
           stage_02 wording (if Q3 = yes), DEVLOG step, LEARNING_GUIDE (Range requests/resumable
           downloads, zip slip + safe tar, graphml, `.npy` + pickle risk), roadmap tick +
