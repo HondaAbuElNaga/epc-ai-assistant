@@ -5,6 +5,105 @@ Inspected 2026-10-16 inside the `dev` container, on the files downloaded on 2026
 each section, using only the standard library and NumPy. Nothing is taken from the papers unless
 it says so. Inferences are marked **(inference)**.
 
+## 0. Plain-language guide (read this first)
+
+### The big idea
+Each dataset is a set of **P&ID drawings**, each with an **"answer key"**:
+- the **drawing** is a picture (`.png` / `.jpg`);
+- the **answer key** says *"there's a valve here, a pump there, and this line connects them"*.
+
+In Phase 7 we show the computer the drawings **together with** their answer keys, so it learns to
+find the symbols by itself. Every folder below holds either **pictures** or **answer keys**.
+
+### Folder 1: `data/raw/pid/pid2graph/`, the PID2Graph dataset
+
+```
+pid2graph/
+├── PID2Graph.zip          ← the original 9.3 GB download (kept as a backup)
+├── manifest.json          ← our receipt: what we downloaded, when, size, checksum
+└── PID2Graph/Complete/    ← the unpacked drawings
+    ├── Dataset PID/            500 drawings (computer-made)
+    ├── PID2Graph OPEN100/       12 drawings (REAL, from a nuclear plant design)
+    └── PID2Graph Synthetic/    250 drawings (computer-made)
+```
+
+Each of the three folders holds **pairs** of files with the same number:
+
+| File | What it is |
+|---|---|
+| `0.png` | **The picture** of drawing 0 |
+| `0.graphml` | **The answer key** of drawing 0 (a text file) |
+
+The answer key lists two kinds of things:
+
+**1. Things on the drawing, each with a box around it**, e.g.
+`valve at box (2435, 932) → (2539, 1009)`. The numbers are **pixel positions** in the picture:
+top-left corner → bottom-right corner.
+
+| Name | Meaning |
+|---|---|
+| `valve`, `pump`, `tank`, `instrumentation`, `arrow`, `inlet/outlet`, `general` | **Real symbols** (`general` = "other symbol") |
+| `connector` | A tiny 8×8 dot where a pipe touches a symbol |
+| `crossing` | A tiny 8×8 dot where two pipes cross |
+| `background` | The empty border/frame of the drawing; ignore it |
+
+**2. Lines between them**, e.g. `valve1 ── solid ── connector5`: a pipe (`solid`) or a signal
+line (`non-solid`, dashed) connecting two things.
+
+In short: the `.graphml` says *which symbols are where, and which are connected by pipes*.
+
+### Folder 2: `data/raw/pid/dataset_pid/`, the original Dataset-P&ID
+
+```
+dataset_pid/
+├── manifest.json, drive_listing.json   ← our receipts
+├── image_2.tar.gz, mask.tar.gz         ← the original packed downloads (backup)
+├── image_2/image_2/
+│     0.jpg … 499.jpg                    ← THE PICTURES (500 drawings)
+├── mask/mask/
+│     0_mask.png … 499_mask.png          ← black-and-white helper images (not studied yet)
+└── 0/  1/  2/ … 499/                    ← THE ANSWER KEYS, one folder per drawing
+```
+
+Each numbered folder (e.g. `0/`) has **7 answer-key files for that drawing**:
+
+| File | What it holds (drawing 0 example) | Opened? |
+|---|---|---|
+| `0_symbols.npy` | **Symbols** with boxes: `symbol_1` at (1669, 767)–(1702, 829), type `21` | 🔒 not yet |
+| `0_words.npy` | **Text** on the drawing and where it is: `"SDL"`, `"101"` | 🔒 not yet |
+| `0_lines.npy` | **Pipes**: start/end point, pipe number (`5"-EK-2648`), solid or dashed | 🔒 not yet |
+| `0_linker.npy` | **Which text and pipe belong to which symbol**: `symbol_11` ↔ `word_1,word_2` + `line_75` | 🔒 not yet |
+| `0_lines2.npy` | Lines of the drawing's **frame and table** (inference) | ✅ yes |
+| `0_KeyValue.npy` | The **title block**: `ORGANIZATION = P-0`, `CONTRACTOR PROJECT NO. = AI-2148` | ✅ yes |
+| `0_Table.npy` | The **revision table**: `ISSUE A, 15/07/22, ISSUE CONSTR. REV.1` | ✅ yes |
+
+🔒 = these 4 files use "pickle", a format that can run code when opened. They have **not been
+opened**, for safety; only their text was read (§4.2). Opening them is the owner's decision for
+Phase 7.
+
+### Why the two datasets look like they hold "the same" drawings
+PID2Graph's `Dataset PID` folder is a **converted copy** of Dataset-P&ID, but:
+- it is **simplified**: 32 symbol types became 7, and the text and tables were removed;
+- it has **not been confirmed** that drawing `0` in one is drawing `0` in the other (§6).
+
+So: **use each dataset's pictures only with its own answer keys.**
+
+### One line per folder
+
+| Folder | One line |
+|---|---|
+| `pid2graph/.../Dataset PID` | 500 computer-made drawings + simple answer keys (7 symbol types + pipes) |
+| `pid2graph/.../PID2Graph OPEN100` | **12 real drawings** + answer keys; the most valuable for testing |
+| `pid2graph/.../PID2Graph Synthetic` | 250 computer-made drawings + answer keys |
+| `dataset_pid/image_2` | 500 drawings (pictures) |
+| `dataset_pid/0 … 499` | detailed answer keys for those 500 (32 symbol types, text, pipes, tables) |
+| `dataset_pid/mask` | 500 helper images; purpose not checked yet |
+
+To **see** one: open `data/raw/pid/pid2graph/PID2Graph/Complete/PID2Graph OPEN100/0.png` (a real
+P&ID) and its answer key `0.graphml` in a text editor.
+
+The sections below are the technical details behind this guide.
+
 ## 1. Where the files are
 
 ```
