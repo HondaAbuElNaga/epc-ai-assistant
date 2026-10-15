@@ -1,7 +1,8 @@
 # Spec: P&ID datasets (PID2Graph + Dataset-P&ID download)
 
 **Roadmap item:** Phase 2, "PID2Graph + Dataset-P&ID download"
-**Status:** approved (2026-10-14), with the owner's decisions below
+**Status:** done (2026-10-16). Approved 2026-10-14 with the owner's decisions below; built on
+branch `spec/2026-10-14-pid-datasets`. Review (task 11) skipped at the owner's request.
 **Branch:** `spec/2026-10-14-pid-datasets`
 **Related:** PROJECT_PLAN Stage 2 (download) and Stage 6 (Module C, P&ID reader)
 
@@ -143,7 +144,7 @@ link points to.
       zip-slip member rejected, skip existing, Drive folder-view parser, manifest contents.
 - [x] `format_notes.md` records the real image sizes, graphml node/edge attributes and label
       values, and `.npy` shapes/dtypes (or "needs pickle"). Each fact was checked on the files.
-- [ ] `ruff check`, `ruff format`, `pytest` are clean, with coverage ≥ 70 % (CI gate).
+- [x] `ruff check`, `ruff format`, `pytest` are clean, with coverage ≥ 70 % (CI gate).
 
 ## Technical approach
 - **Libraries:** `requests`, `tqdm`, `numpy` (all ✅ in the tech stack), and the standard library

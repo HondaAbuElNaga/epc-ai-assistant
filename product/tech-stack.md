@@ -100,8 +100,8 @@
 | UFGS (wbdg.org) | A, B | Public domain (U.S. government) | 🔜 Stage 2 |
 | Ghent OR&S real project database | D | Free for research; cite the authors | 🔜 Stage 2 |
 | NYC Open Data capital projects | D (extra) | Open data | 🔜 Stage 2 |
-| PID2Graph (Zenodo) | C | Check the Zenodo record | 🔜 Stage 2 |
-| Dataset-P&ID (Paliwal et al.) | C | Research use | 🔜 Stage 2 |
+| PID2Graph (Zenodo, DOI 10.5281/zenodo.14803338) | C | CC BY-SA 4.0 (record); the OPEN100 part gives no license of its own; cite Stürmer et al. 2025 | ✅ downloaded 2026-10-15: 12 real (OPEN100) + 750 synthetic drawings ([spec](../specs/2026-10-14-pid-datasets/spec.md)) |
+| Dataset-P&ID (Paliwal et al. 2021, Google Drive) | C | No license file; the paper says "publicly available"; the PID2Graph record lists it as CC BY-SA 4.0 | ✅ downloaded 2026-10-15: 500 synthetic drawings, 32 symbol types |
 | OSHA Severe Injury Reports | B (bonus) | Public | 🔜 Stage 2 |
 
 ## Conventions

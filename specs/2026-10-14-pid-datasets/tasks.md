@@ -43,10 +43,13 @@ closer to `S`, though most of that time is waiting on downloads.
          boxes, all `background`; 4 of 7 .npy types (symbols, lines, linker, words) need pickle →
          NOT loaded; pickletools: only 3 NumPy imports, nothing unsafe. Open: drawing N in
          PID2Graph = drawing N in the original? Not verified (§6); mask contents not checked yet
-- [ ] 10. Docs: `product/tech-stack.md` data-source rows (real licenses), mission/PROJECT_PLAN/
+- [x] 10. Docs: `product/tech-stack.md` data-source rows (real licenses), mission/PROJECT_PLAN/
           stage_02 wording (if Q3 = yes), DEVLOG step, LEARNING_GUIDE (Range requests/resumable
           downloads, zip slip + safe tar, graphml, `.npy` + pickle risk), roadmap tick +
           "Current position", PROJECT_PLAN checklist, spec status → done
-- [ ] 11. Review: 3 subagents (bugs, security, accuracy) on `git diff main...HEAD`; fix
-          confirmed findings
+          Done 2026-10-16: DEVLOG step 18; LEARNING_GUIDE 1.10 (Range/retry), new 1.13, 5.6 GraphML;
+          mission also corrected 133 → 231 Ghent projects
+- [ ] 11. ~~Review: 3 subagents (bugs, security, accuracy) on `git diff main...HEAD`; fix
+          confirmed findings~~
+          **Skipped 2026-10-16 at the owner's request** (no independent review of this feature)
 - [ ] 12. Push the branch, open a pull request (CI green), merge into `main`
