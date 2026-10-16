@@ -81,20 +81,20 @@ What the existing records do **not** cover:
   `tests/test_checksums.py`.
 
 ## Acceptance criteria
-- [ ] `checksums.json` lists every file under `data/raw/` except the skipped ones (Req. 5);
+- [x] `checksums.json` lists every file under `data/raw/` except the skipped ones (Req. 5);
       its per-dataset counts match `find -type f` minus skipped files.
-- [ ] The SHA-256 values in `checksums.json` for `DSLIB3.4.zip`, `PID2Graph.zip` and the UFGS
+- [x] The SHA-256 values in `checksums.json` for `DSLIB3.4.zip`, `PID2Graph.zip` and the UFGS
       PDFs equal the ones already in the download records (cross-check, done by a test or a
       one-off script whose output is pasted in `tasks.md`).
-- [ ] `python -m src.datasets.checksums --verify` on the real data: 0 missing, 0 changed.
-- [ ] Running `--write` twice without data changes gives a byte-identical file.
-- [ ] Unit tests pass offline: write + verify ok; a changed byte → `changed`; a deleted file →
+- [x] `python -m src.datasets.checksums --verify` on the real data: 0 missing, 0 changed.
+- [x] Running `--write` twice without data changes gives a byte-identical file.
+- [x] Unit tests pass offline: write + verify ok; a changed byte → `changed`; a deleted file →
       `missing`; an added file → `new` (exit 0); skipped files ignored; paths use `/`.
-- [ ] `DATA_CATALOG.md` has all 4 datasets + OSHA/NYC rows, every field of Requirement 1, and
+- [x] `DATA_CATALOG.md` has all 4 datasets + OSHA/NYC rows, every field of Requirement 1, and
       every issue of Requirement 3; its counts and sizes match `checksums.json`.
-- [ ] UFGS license/distribution line is filled from a checked source, or says clearly
+- [x] UFGS license/distribution line is filled from a checked source, or says clearly
       "not stated" with the place that was checked.
-- [ ] `ruff check`, `ruff format`, `pytest` clean, coverage ≥ 70 % (CI gate).
+- [x] `ruff check`, `ruff format`, `pytest` clean, coverage ≥ 70 % (CI gate).
 
 ## Technical approach
 - **Libraries:** standard library only (`hashlib`, `json`, `pathlib`, `argparse`) + `tqdm`
