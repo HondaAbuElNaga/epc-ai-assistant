@@ -30,6 +30,7 @@ New steps are added at the bottom. Technologies mentioned here are explained in
 | 16 | 2026-10-10 | Stage 2 | Ghent DSLIB: download, inspect, loader (231 projects) |
 | 17 | 2026-10-11 | Stage 10 | GitHub Actions CI: tests, 70 % coverage gate, gitleaks, protected `main` |
 | 18 | 2026-10-16 | Stage 2 | P&ID datasets: PID2Graph + Dataset-P&ID download and inspection |
+| 19 | 2026-10-16 | Stage 2 | Data catalog + checksums of every raw file (6,995 files) |
 
 ---
 
@@ -869,6 +870,71 @@ drawings are much smaller, and 4 of the 7 annotation types need pickle.
 - LEARNING_GUIDE 1.10 Data integrity (HTTP Range, resume, auto-retry);
 - 1.13 Untrusted files (zip slip, safe tar, pickle);
 - 5.6 Graphs & NetworkX (GraphML).
+
+---
+
+## Step 19: Data catalog + checksums of every raw file
+
+**What:** one page that lists every dataset, and one fingerprint file that proves the data is
+unchanged (spec `2026-10-16-data-catalog`):
+- `data/DATA_CATALOG.md`: per dataset the source, version, download date, license (quoted, or
+  "none stated"), citation, folder, files, size, how to re-download, modules and known issues.
+  OSHA and NYC are listed as "not downloaded (optional)".
+- `data/checksums.json`: size + SHA-256 of all 6,995 files under `data/raw/`.
+- `src/datasets/checksums.py`: `--write`, `--verify`, `--quick`, `--dataset`.
+
+**Why:** the four download records had four layouts and did not cover extracted files, and the
+license facts were spread over three specs. The UFGS license had never been checked. A portfolio
+needs to answer "which data, from where, may I use it?" on one page.
+
+**How:**
+1. Tests first: 18 offline tests on a tiny fake `data/raw/` in a temp folder; they failed at
+   import, then `checksums.py` made them pass.
+2. Real runs (one at a time, see Problems):
+   ```bash
+   docker compose exec dev uv run python -m src.datasets.checksums --write    # 7 min 1 s
+   docker compose exec dev uv run python -m src.datasets.checksums --verify   # 3 min 17 s
+   ```
+3. Cross-check against the old download records (read-only script over the JSON files).
+4. UFGS license: searched the text streams of all 271 PDFs (plain Python `zlib`, one file at a
+   time), the WBDG API record, and quoted 17 U.S.C. §105(a) / §101 from law.cornell.edu.
+5. Catalog written by hand (owner decision); numbers copied from the script output.
+
+**Files:**
+
+| File | Change |
+|---|---|
+| `src/datasets/checksums.py` | New: scan / write / verify, CLI |
+| `tests/test_checksums.py` | New: 18 offline tests |
+| `data/checksums.json` | New: 6,995 entries, 1,086,225 bytes (committed) |
+| `data/DATA_CATALOG.md` | New: the catalog |
+| `specs/2026-10-16-data-catalog/` | `spec.md`, `tasks.md` |
+| `docs/LEARNING_GUIDE.md` | 1.10: "One checksum file for all data" |
+
+**Verify (real results):**
+- `--write`: ufgs 271 files / 37,587,638 B · ghent 697 / 340,223,260 B · pid2graph 1,525 /
+  12,786,840,026 B · dataset_pid 4,502 / 2,328,204,243 B = `find -type f` minus skipped files.
+- Cross-check: Ghent zip and PID2Graph zip SHA-256 = download records; UFGS 271/271;
+  Dataset-P&ID 3,502/3,502.
+- Second `--write`: `cmp` → identical file. `--verify`: ok 6,995, missing 0, changed 0, new 0.
+- `ruff` clean; `pytest`: 142 passed, 2 deselected; coverage 89 % (`checksums.py` 98 %).
+
+**Problems & fixes:**
+1. **Background jobs stopped for low memory (twice).** The first `--write` was stopped while two
+   PDF text searches ran at the same time; the second time, the `--verify` after the repeat
+   `--write` was stopped. Fix: run one heavy job at a time; the last `--verify` ran in the
+   foreground (not idle) and finished in 3 min 17 s.
+2. **A first PDF search script was too slow** (it built each PDF's whole text with repeated
+   string joins and a complex regex). Rewritten to search each decompressed stream directly:
+   271 PDFs in under a second.
+3. **The WBDG pages can't be read automatically** (text loads with JavaScript), and a web search
+   summary claimed a "public release" marking on a related document. Not verified, so not used;
+   the catalog only states what was checked.
+4. **Requirement fix during the build:** a re-run would always change `updated_at`, so the file is
+   now only rewritten when an entry changes (spec Requirement 4 updated).
+5. **Review skipped:** task 11 (3 subagent reviewers) was skipped at the owner's request.
+
+**Learn:** LEARNING_GUIDE 1.10 Data integrity → "One checksum file for all data".
 
 ---
 

@@ -355,6 +355,35 @@ with part.open("ab" if offset else "wb") as f:
 
 **Where:** `src/datasets/pid.py` (`download`, `_download_once`).
 
+### One checksum file for all data (data catalog)
+
+The download records only cover what was *downloaded*. Files unpacked from an archive had no
+fingerprint at all. `data/checksums.json` fixes that: one SHA-256 for **every** file under
+`data/raw/` (6,995 files, 15.49 GB), in one layout for all datasets.
+
+- **Write once, verify often:** `--write` hashes everything (7 min on this PC); `--verify`
+  re-hashes and compares. The result has four lists: **ok**, **missing** (recorded, not on
+  disk), **changed** (size or hash differs) and **new** (on disk, not recorded). Missing or
+  changed = fail; new = only a warning.
+- **Quick check:** comparing sizes only takes seconds. It misses a flipped byte (same size), so it
+  is for everyday use; the full hash check is the proof.
+- **Read in chunks:** `f.read(1024 * 1024)` in a loop keeps memory flat, even for a 9 GB zip.
+- **Deterministic file:** sorted keys, `/` in paths (same on Windows and Linux), and the file is
+  only rewritten when an entry changed. A new timestamp alone would make a useless `git diff`.
+- **Skip what changes by design:** download records (`manifest.json`) and unfinished `.part`
+  files change on every run; the data itself must not.
+
+```python
+def sha256_file(path, chunk_size=1024 * 1024):
+    digest = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(chunk_size), b""):   # b"" = end of file
+            digest.update(chunk)
+    return digest.hexdigest()
+```
+
+**Where:** `src/datasets/checksums.py`, `data/checksums.json`, `data/DATA_CATALOG.md`.
+
 **Study:** https://docs.python.org/3/library/hashlib.html ·
 https://docs.python.org/3/library/pathlib.html#pathlib.Path.replace ·
 https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
