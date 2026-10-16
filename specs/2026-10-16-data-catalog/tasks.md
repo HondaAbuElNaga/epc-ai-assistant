@@ -39,7 +39,8 @@
       → ruff clean, 28 files formatted; 142 passed, 2 deselected; coverage 89 % (checksums.py 98 %)
 - [x] 10. Verify every acceptance criterion against real output
       → all 8 criteria met (evidence in tasks 4–9)
-- [ ] 11. Review with 3 subagents (bugs, security, accuracy); fix confirmed findings
-- [ ] 12. Docs: DEVLOG step 19, LEARNING_GUIDE (checksums / SHA-256 section if missing),
+- [x] 11. Review with 3 subagents (bugs, security, accuracy); fix confirmed findings
+      → skipped at the owner's request (2026-10-16)
+- [x] 12. Docs: DEVLOG step 19, LEARNING_GUIDE (checksums / SHA-256 section if missing),
       PROJECT_PLAN checklist, roadmap tick + "Current position"; spec status → `done`
-- [ ] 13. Commit, push the branch, open a pull request into `main`
+- [x] 13. Commit, push the branch, open a pull request into `main`

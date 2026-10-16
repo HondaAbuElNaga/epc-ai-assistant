@@ -236,7 +236,7 @@ Assumes 3–4 hours a day.
 1. Write `src/datasets/ufgs.py` (run: `python -m src.datasets.ufgs`): read the section list from the WBDG sitemap, ask the WBDG API which sections are active and where their current PDF is, download only active sections (divisions 01, 03, 05, 22, 23, 26, 33 + process divisions 40, 41, 42, 43, 44, 46), use polite request delays, skip files that already exist, and write `data/raw/ufgs/manifest.json`. Spec: `specs/2026-10-07-ufgs-download/`.
 2. Download the Ghent DSLIB release zip from GitHub (no form needed) and unzip it. Then **inspect the file format before writing any code**. Done 2026-10-10: `src/datasets/ghent.py` (run: `python -m src.datasets.ghent`), spec `specs/2026-10-08-ghent-project-db/` (format notes, groups, results).
 3. Download PID2Graph from Zenodo and Dataset-P&ID from Google Drive. Done 2026-10-15: `src/datasets/pid.py` (run: `python -m src.datasets.pid`), spec `specs/2026-10-14-pid-datasets/` (format notes). Only 12 PID2Graph drawings are real (OPEN100); the rest are synthetic.
-4. Write `data/DATA_CATALOG.md`: for each dataset record the source URL, download date, license, file count, size and known issues.
+4. Write `data/DATA_CATALOG.md`: for each dataset record the source URL, download date, license, file count, size and known issues. Done 2026-10-16, with `data/checksums.json` (SHA-256 of all 6,995 raw files) written and checked by `python -m src.datasets.checksums --write | --verify`. Spec `specs/2026-10-16-data-catalog/`.
 5. Write a profiling notebook per dataset (`notebooks/00_profile_<dataset>.ipynb`) covering counts, missing values, distributions and sample records.
 
 **Testing:**
@@ -723,7 +723,8 @@ one risk (data leaving to an API).
 - [x] Ghent database downloaded and inspected
 - [x] PID2Graph and Dataset-P&ID downloaded (2026-10-15: 12 real + 750 synthetic; 500 originals with 32-class labels)
 - [ ] OSHA data downloaded
-- [ ] `DATA_CATALOG.md` and profiling notebooks
+- [x] `DATA_CATALOG.md` + `data/checksums.json` (2026-10-16: 4 datasets, 6,995 files, verify passed)
+- [ ] Profiling notebooks
 - [ ] Data integrity tests
 
 **Stage 3: Module A (Spec RAG)**

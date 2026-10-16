@@ -1,7 +1,8 @@
 # Spec: Data catalog + checksums
 
 **Roadmap item:** Phase 2, "`data/DATA_CATALOG.md` + checksums"
-**Status:** approved (2026-10-16) with the owner's decisions below
+**Status:** done (2026-10-16). Approved 2026-10-16 with the owner's decisions below. Review
+(task 11) skipped at the owner's request.
 **Branch:** `spec/2026-10-16-data-catalog`
 **Related:** PROJECT_PLAN Stage 2, process step 4 and the testing bullet "checksums are stored in
 `data/checksums.json` and match"
