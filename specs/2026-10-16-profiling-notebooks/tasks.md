@@ -15,8 +15,12 @@
       → exit 0, 43 s, peak 171 MB, 63,002 bytes (2026-10-17)
 - [x] 7. Notebook `00_profile_dataset_pid.ipynb`; run headless; record the same
       → exit 0, 32 s, peak 168 MB, 60,729 bytes (2026-10-17)
-- [ ] 8. Notebook `00_profile_pid2graph.ipynb`; run headless; record the same
-- [ ] 9. Check the notebook totals against `DATA_CATALOG.md` / `checksums.json`
+- [x] 8. Notebook `00_profile_pid2graph.ipynb`; run headless; record the same
+      → exit 0, 34 s, peak 228 MB, 100,158 bytes (2026-10-17)
+- [x] 9. Check the notebook totals against `DATA_CATALOG.md` / `checksums.json`
+      → all agree: UFGS 271 PDFs / 37,587,638 B; Ghent 231 projects, 117/41/73; PID2Graph
+      12 + 250 + 500 graphs with as many images (the criterion's "512 + 250" = 12 real + 500
+      Dataset PID, + 250 synthetic); Dataset-P&ID 500 folders, 3,500 `.npy`, 500 images, 500 masks
 - [ ] 10. `uv run ruff check .`, `uv run ruff format .`, `uv run pytest` (coverage ≥ 70 %)
 - [ ] 11. Verify every acceptance criterion against real output
 - [ ] 12. Review with 3 subagents (bugs, security, accuracy); fix confirmed findings
