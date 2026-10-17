@@ -1,7 +1,8 @@
 # Spec: Profiling notebooks (one per dataset)
 
 **Roadmap item:** Phase 2, "Profiling notebook per dataset"
-**Status:** approved (2026-10-17) with the owner's answers below
+**Status:** done (2026-10-17). Approved 2026-10-17 with the owner's answers below; built on
+this branch; review (3 subagents) fixes in `tasks.md` task 12
 **Branch:** `spec/2026-10-16-profiling-notebooks`
 **Related:** PROJECT_PLAN Stage 2, process step 5: "a profiling notebook per dataset
 (`notebooks/00_profile_<dataset>.ipynb`) covering counts, missing values, distributions and sample

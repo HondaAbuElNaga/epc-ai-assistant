@@ -80,5 +80,5 @@ versions go to `data/processed/`.
 - [x] Ghent database downloaded, format inspected, loader written
 - [x] PID2Graph + Dataset-P&ID downloaded
 - [ ] `data/DATA_CATALOG.md` + `data/checksums.json`
-- [ ] Profiling notebook per dataset
+- [x] Profiling notebook per dataset (2026-10-17, `notebooks/00_profile_*.ipynb`)
 - [ ] `tests/test_data_integrity.py` passes

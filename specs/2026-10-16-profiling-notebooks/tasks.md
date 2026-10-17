@@ -36,7 +36,7 @@
       while fixing: "AC > BAC" counted cent-level rounding, now AC > 1.01 × BAC (66).
       Not changed (low, current data never hits it): `.npy` version 3.0 and non-numeric drawing
       folders in `npy_shapes`.
-- [ ] 13. Docs: DEVLOG step 20, LEARNING_GUIDE (1.7 Jupyter: headless runs; matplotlib and
+- [x] 13. Docs: DEVLOG step 20, LEARNING_GUIDE (1.7 Jupyter: headless runs; matplotlib and
       PyMuPDF basics if added), PROJECT_PLAN checklist, roadmap tick + "Current position";
       spec status → `done`
-- [ ] 14. Commit, push the branch, open a pull request into `main`
+- [x] 14. Commit, push the branch, open a pull request into `main`

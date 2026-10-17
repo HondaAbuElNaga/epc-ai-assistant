@@ -16,8 +16,9 @@ v3.4 downloaded, inspected and loaded (2026-10-10, 231 projects, 117 with EVM tr
 built early (Phase 9 item, 2026-10-11): every pull request into `main` must pass ruff, pytest
 with a 70 % coverage gate and a gitleaks secret scan · PID2Graph + Dataset-P&ID downloaded and
 inspected (2026-10-16; only 12 drawings are real) · `data/DATA_CATALOG.md` + checksums of all
-6,995 raw files (2026-10-16) · **next: a spec for the profiling notebooks** (one per dataset),
-then `tests/test_data_integrity.py` (OSHA/NYC stay optional).
+6,995 raw files (2026-10-16) · profiling notebooks, one per dataset, run headless with outputs
+(2026-10-17; matplotlib + PyMuPDF brought forward) · **next: a spec for
+`tests/test_data_integrity.py`**, the last required Phase 2 item (OSHA/NYC stay optional).
 
 ---
 
@@ -54,7 +55,7 @@ then `tests/test_data_integrity.py` (OSHA/NYC stay optional).
 - [x] PID2Graph + Dataset-P&ID download (12 real + 750 synthetic drawings; 500 originals with 32-class labels; [spec](../specs/2026-10-14-pid-datasets/spec.md), 2026-10-16) `XS`
 - [ ] OSHA + NYC capital projects (optional) `XS`
 - [x] `data/DATA_CATALOG.md` + checksums (6,995 files, 15.49 GB, verify passed; [spec](../specs/2026-10-16-data-catalog/spec.md), 2026-10-16) `XS`
-- [ ] Profiling notebook per dataset `S`
+- [x] Profiling notebook per dataset (4 notebooks with outputs: UFGS 0 pages without text, Ghent 73 of 117 end with CPI < 1, real P&ID valves 26 px; [spec](../specs/2026-10-16-profiling-notebooks/spec.md), 2026-10-17) `S`
 - [ ] `tests/test_data_integrity.py` `XS`
 
 ## Phase 3: Module A, Spec RAG (Stage 3), core
