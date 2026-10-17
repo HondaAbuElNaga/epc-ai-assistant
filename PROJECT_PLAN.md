@@ -248,7 +248,7 @@ Assumes 3–4 hours a day.
 
 **Done when:**
 - [ ] All datasets are downloaded and listed in `DATA_CATALOG.md`
-- [ ] A profiling notebook exists for each dataset
+- [x] A profiling notebook exists for each dataset (2026-10-17)
 - [ ] Integrity tests pass
 
 ---
@@ -724,7 +724,7 @@ one risk (data leaving to an API).
 - [x] PID2Graph and Dataset-P&ID downloaded (2026-10-15: 12 real + 750 synthetic; 500 originals with 32-class labels)
 - [ ] OSHA data downloaded
 - [x] `DATA_CATALOG.md` + `data/checksums.json` (2026-10-16: 4 datasets, 6,995 files, verify passed)
-- [ ] Profiling notebooks
+- [x] Profiling notebooks (2026-10-17: 4 notebooks, run headless with outputs; `src/datasets/profiling.py`)
 - [ ] Data integrity tests
 
 **Stage 3: Module A (Spec RAG)**

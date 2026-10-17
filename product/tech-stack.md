@@ -37,7 +37,7 @@
 
 | Module | Choice | Status |
 |---|---|---|
-| A: PDF parsing | PyMuPDF (`pymupdf`); Docling as an optional upgrade | 🔜 Stage 3 |
+| A: PDF parsing | PyMuPDF (`pymupdf` 1.28.2; license AGPL-3.0 or Artifex commercial, PyPI); Docling as an optional upgrade | ✅ (2026-10-17, brought forward for the UFGS profiling notebook: pages, text, pages without text; [spec](../specs/2026-10-16-profiling-notebooks/spec.md)) |
 | A: Embeddings | `sentence-transformers` + `BAAI/bge-small-en-v1.5` (PyTorch **CPU** build via a uv index) | 🔜 Stage 3 |
 | A: Vector DB | ChromaDB (persistent, local) | 🔜 Stage 3 |
 | A: Keyword search | `rank-bm25`; hybrid with RRF | 🔜 Stage 3 |
@@ -45,7 +45,7 @@
 | B: Classical ML | scikit-learn (TF-IDF + Logistic Regression) | 🔜 Stage 4 |
 | B: Extraction | Claude tool use / structured output + Pydantic | 🔜 Stage 4 |
 | D: Forecasting | scikit-learn, XGBoost | 🔜 Stage 5 |
-| D: Charts | matplotlib / plotly | 🔜 Stage 5 |
+| Charts | matplotlib 3.11.2 (PSF-style license, PyPI; pulls in Pillow); plotly optional for Stage 5 | ✅ (2026-10-17, brought forward for the profiling notebooks' distribution charts) |
 | C: Detection | Ultralytics YOLO (AGPL-3.0) | 🔜 Stage 6 |
 | C: Image processing | OpenCV | 🔜 Stage 6 |
 | C: OCR | PaddleOCR or EasyOCR | 🔜 Stage 6 |

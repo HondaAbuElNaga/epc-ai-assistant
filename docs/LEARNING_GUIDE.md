@@ -21,7 +21,7 @@ For each one:
 |---|---|
 | Stage 0 (setup) | 8.7 Spec-driven development · 1.1 Python · 1.2 Git & GitHub · 1.3 Docker · 1.4 Docker Compose · 1.5 uv · 8.1 pytest · 8.4 ruff |
 | Stage 1 (EPC) | 2.1 EPC basics · 2.2 Earned Value Management |
-| Stage 2 (data) | 1.6 pandas & numpy · 1.7 Jupyter · 1.8 HTTP & requests · 1.9 Web data acquisition · 1.10 Data integrity · 1.11 Web page vs API · 1.12 Reading messy Excel files · 1.13 Untrusted files · 6.1 Data validation |
+| Stage 2 (data) | 1.6 pandas & numpy · 1.7 Jupyter · 1.8 HTTP & requests · 1.9 Web data acquisition · 1.10 Data integrity · 1.11 Web page vs API · 1.12 Reading messy Excel files · 1.13 Untrusted files · 1.14 matplotlib · 6.1 Data validation |
 | Stage 3 (RAG) | Part 3 (all of 3.1 → 3.12) |
 | Stage 4 (documents) | 4.1 → 4.6 · 3.5 Structured output · 3.6 Pydantic |
 | Stage 5 (project controls) | 2.2 EVM · 4.4 Tree models / XGBoost · 4.5 Cross-validation · 4.6 Regression metrics · 6.1 pandera |
@@ -224,7 +224,31 @@ modules.
 `docker compose exec dev uv run --with jupyterlab jupyter lab --ip 0.0.0.0 --port 8888 --allow-root`,
 then open http://localhost:8888
 
-**Study:** https://jupyter.org/try
+### Headless runs and notebooks in git (profiling notebooks)
+
+**Key concepts:**
+- **Headless run:** `jupyter nbconvert --to notebook --execute --inplace <file>` starts a kernel,
+  runs every cell top to bottom, and saves the outputs into the same file. No browser needed; a
+  failing cell stops the run with a non-zero exit code. This proves the notebook works from a
+  clean start (no hidden state from cells run out of order).
+- **Outputs in git:** committing a notebook *with* outputs lets GitHub show tables and charts
+  (good for a portfolio). Cost: noisy diffs; so re-run only when data or code changes, and keep
+  files small (charts at low dpi, long tables cut).
+- **Logic in `src/`, display in the notebook:** the notebook calls tested functions
+  (`src/datasets/profiling.py`), so the numbers come from code that has unit tests.
+- **Findings as code:** write the conclusions as f-strings in a code cell, so every number in a
+  sentence is computed in the run and cannot go stale. Print each number in an earlier cell too,
+  so a reader can see where it comes from.
+- **ruff checks notebooks:** `ruff check .` and `ruff format .` include `.ipynb` cells.
+
+**Example:**
+```bash
+docker compose exec dev uv run --with jupyterlab jupyter nbconvert --to notebook --execute --inplace notebooks/00_profile_ghent.ipynb
+```
+
+**Where:** `notebooks/00_profile_*.ipynb` (DEVLOG step 20).
+
+**Study:** https://jupyter.org/try · https://nbconvert.readthedocs.io/en/latest/execute_api.html
 
 ---
 
@@ -533,10 +557,67 @@ except ValueError:                                  # "Object arrays cannot be l
 **Where:** `src/datasets/pid.py` (`_check_member`, `extract_zip`, `extract_tar`);
 `specs/2026-10-14-pid-datasets/format_notes.md` §4.2.
 
+### Read the header, not the whole file (profiling)
+
+Many file formats put a small **header** at the start that describes the rest. Reading only the
+header is fast, uses almost no memory and avoids the risky part of the file:
+- **PNG:** 8 fixed signature bytes, then the `IHDR` chunk: width and height as two 4-byte
+  big-endian numbers (bytes 16–24).
+- **JPEG:** a list of *markers* (`FF xx`); the "start of frame" marker (`FF C0`, `FF C2`, ...)
+  holds height and width. Walk the markers using each one's 2-byte length.
+- **`.npy`:** a magic string, then a small text header with `shape` and `dtype`;
+  `numpy.lib.format.read_array_header_1_0` reads it without touching the (maybe pickled) data.
+
+```python
+import struct
+with open("drawing.png", "rb") as f:
+    head = f.read(24)
+width, height = struct.unpack(">II", head[16:24])   # ">" = big-endian, "I" = 4-byte unsigned
+```
+
+Used in `src/datasets/profiling.py` (`image_size`, `npy_shape`): the 7,168 × 4,561 px drawings
+are never decoded, and pickled arrays are never loaded.
+
 **Study:** https://docs.python.org/3/library/tarfile.html#extraction-filters ·
 https://docs.python.org/3/library/pickle.html (the red warning box) ·
 https://docs.python.org/3/library/pickletools.html ·
 https://numpy.org/doc/stable/reference/generated/numpy.load.html
+
+---
+
+## 1.14 matplotlib (charts)
+
+**What:** Python's standard plotting library: histograms, bar charts, box plots, line charts.
+
+**Why here:** the profiling notebooks show distributions (pages per PDF, project budgets, symbol
+sizes); a chart shows the shape of the data far better than a long table. Module D will use it
+for EVM charts.
+
+**Key concepts:**
+- **Figure and axes:** `fig, axes = plt.subplots(1, 3)` makes one figure with 3 plots side by
+  side; draw on each `ax`.
+- **Histogram:** `ax.hist(values, bins=30)`: how many values fall into each range.
+- **Log scale:** values that span orders of magnitude (budgets from 1,210 to 5 billion) need
+  `ax.set_xscale("log")` and log-spaced bins (`np.geomspace`), or all bars pile up at the left.
+- **Box plot:** median, quartiles and spread of several groups side by side
+  (`showfliers=False` hides outliers).
+- **Small files:** `plt.rcParams["figure.dpi"] = 72` keeps notebook images small for git.
+
+**Example:**
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+
+fig, ax = plt.subplots()
+ax.hist(budgets, bins=np.geomspace(budgets.min(), budgets.max(), 25))
+ax.set_xscale("log")
+ax.set_title("budget at completion (EUR)")
+plt.show()
+```
+
+**Where:** `notebooks/00_profile_*.ipynb`; later Module D reports.
+
+**Study:** https://matplotlib.org/stable/users/explain/quick_start.html
 
 ---
 
@@ -579,6 +660,12 @@ actual cost.
 
 **Example:** BAC = 1,000,000; EV = 400,000; AC = 500,000 → CPI = 0.80 → EAC = 1,250,000.
 The forecast overrun is 250,000.
+
+**Why SPI ends at 1:** when a project finishes, all work is earned (EV = BAC), and once the
+planned finish date has passed, all work is also planned (PV = BAC). So SPI = EV / PV = 1 at the
+end **however late** the project was; only early finishers end above 1. SPI(t) uses time
+instead of money (ES / actual time), so it still shows the delay. Seen in the real data: the
+Ghent notebook shows median SPI 1.00 but median SPI(t) 0.95 at the last tracking period.
 
 **Where:** Module D (Stage 5). Full formulas, worked examples, earned schedule and exercises:
 [03_evm_formulas.md](03_evm_formulas.md).
@@ -735,12 +822,18 @@ PART 1/2/3, article numbers); tables.
 
 **Example:**
 ```python
-import fitz  # PyMuPDF
-doc = fitz.open("03_30_00.pdf")
-text = "\n".join(page.get_text() for page in doc)
+import pymupdf  # older code uses the name `fitz` for the same library
+
+with pymupdf.open("03_30_00.pdf") as doc:   # `with` closes the file again
+    texts = [page.get_text() for page in doc]
+empty_pages = sum(1 for t in texts if not t.strip())   # no text layer: needs OCR
 ```
 
-**Where:** `src/spec_rag/parse.py`.
+**Installed:** 1.28.2 (2026-10-17). License: AGPL-3.0 or a paid Artifex license (see
+`product/tech-stack.md`).
+
+**Where:** `src/datasets/profiling.py` (`pdf_stats`, `first_lines`), used by the UFGS profiling
+notebook: 0 of 10,337 UFGS pages lack text, so UFGS needs no OCR. Later `src/spec_rag/parse.py`.
 
 **Study:** https://pymupdf.readthedocs.io · https://github.com/docling-project/docling ·
 Regular expressions: https://regex101.com

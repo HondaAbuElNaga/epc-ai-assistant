@@ -31,6 +31,7 @@ New steps are added at the bottom. Technologies mentioned here are explained in
 | 17 | 2026-10-11 | Stage 10 | GitHub Actions CI: tests, 70 % coverage gate, gitleaks, protected `main` |
 | 18 | 2026-10-16 | Stage 2 | P&ID datasets: PID2Graph + Dataset-P&ID download and inspection |
 | 19 | 2026-10-16 | Stage 2 | Data catalog + checksums of every raw file (6,995 files) |
+| 20 | 2026-10-17 | Stage 2 | Profiling notebooks, one per dataset (counts, gaps, charts, findings) |
 
 ---
 
@@ -935,6 +936,102 @@ needs to answer "which data, from where, may I use it?" on one page.
 5. **Review skipped:** task 11 (3 subagent reviewers) was skipped at the owner's request.
 
 **Learn:** LEARNING_GUIDE 1.10 Data integrity → "One checksum file for all data".
+
+---
+
+## Step 20: Profiling notebooks, one per dataset
+
+**What:** four notebooks that look at each dataset **as data**: counts, missing values,
+distributions (charts), sample records and findings, each under a source/license header copied
+from `DATA_CATALOG.md` (spec `2026-10-16-profiling-notebooks`):
+- `notebooks/00_profile_ghent.ipynb`, `00_profile_ufgs.ipynb`, `00_profile_dataset_pid.ipynb`,
+  `00_profile_pid2graph.ipynb`, committed **with their outputs** so GitHub shows the results.
+- `src/datasets/profiling.py`: the tested functions the notebooks call (final code never lives
+  in notebooks): `missing_table`, `pdf_stats` / `ufgs_pdf_stats` / `first_lines`,
+  `image_size` / `image_sizes`, `read_graphml` / `graphml_stats` / `graphml_boxes`,
+  `npy_shape` / `npy_shapes`.
+- Two libraries brought forward with the owner's approval: **matplotlib** 3.11.2 (charts) and
+  **PyMuPDF** 1.28.2 (UFGS pages and text; AGPL-3.0 or commercial, recorded in the tech stack).
+
+**Why:** the download steps proved the files are complete; they did not say what is *in* them.
+The findings decide how Modules A–D use the data (chunk size, OCR or not, which projects can be
+forecast, how to tile drawings).
+
+**How:**
+1. Tests first: `tests/test_profiling.py` builds tiny fakes (a PDF made with PyMuPDF, PNG/JPEG
+   saved with matplotlib, a `.graphml` string, `.npy` files with and without pickle). They failed
+   at import; then `profiling.py` made them pass.
+2. Memory-light by design: image sizes from the **file header** (PNG `IHDR`, JPEG start-of-frame
+   marker), `.npy` shape from the **header** (pickled arrays are never loaded), PDFs opened one at
+   a time and closed.
+3. Each notebook ends with a **findings cell that is code**: the sentences are f-strings, so every
+   number in them is computed in the run and also printed above (spec Requirement 1).
+4. Run headless, one at a time:
+   ```bash
+   docker compose exec dev uv run --with jupyterlab jupyter nbconvert --to notebook --execute --inplace notebooks/00_profile_ghent.ipynb
+   ```
+
+**Files:**
+
+| File | Change |
+|---|---|
+| `src/datasets/profiling.py` | New: profile functions |
+| `tests/test_profiling.py` | New: 21 offline tests |
+| `notebooks/00_profile_*.ipynb` | New: 4 notebooks with outputs |
+| `pyproject.toml`, `uv.lock` | `matplotlib`, `pymupdf` (Pillow comes with matplotlib) |
+| `product/tech-stack.md` | PyMuPDF and matplotlib → ✅, with version, license, reason |
+| `specs/2026-10-16-profiling-notebooks/` | `spec.md`, `tasks.md` (run numbers) |
+| `docs/LEARNING_GUIDE.md` | 1.7 headless runs; 1.13 headers instead of whole files; 1.14 matplotlib; 3.8 PyMuPDF |
+
+**Verify (real results, final runs):**
+
+| Notebook | Exit | Time | Peak memory | File |
+|---|---|---|---|---|
+| Ghent | 0 | 19 s | 208 MB | 95,294 B |
+| UFGS | 0 | 58 s | 170 MB | 64,284 B |
+| Dataset-P&ID | 0 | 26 s | 165 MB | 61,754 B |
+| PID2Graph | 0 | 33 s | 235 MB | 101,206 B |
+
+- Totals agree with the catalog: UFGS 271 PDFs / 37,587,638 B; Ghent 231 projects, 117/41/73;
+  PID2Graph 12 + 250 + 500 graphs with as many images; Dataset-P&ID 500 × 7 `.npy`, 500 images,
+  500 masks.
+- `ruff` clean (notebooks included); `pytest`: 163 passed, 2 deselected; coverage 89.41 %.
+
+**Key findings** (each one is printed by its notebook):
+- **UFGS:** 10,337 pages, **0 without text** → no OCR needed. Median section 32 pages (5–200);
+  the median PDF averages about 2,320 characters per page. 194 of 271 sections published 2020+.
+- **Ghent:** 117 projects ready for EVM; 73 of 117 end with CPI < 1. SPI ends at a median 1.00
+  (at completion EV = BAC = PV), so SPI(t) (median 0.95) is the schedule measure. Only 37 periods
+  are named "Actual Schedule", but 115 of 117 last periods have EV ≥ 99 % of BAC.
+- **PID2Graph:** 74 % of nodes are 8 px `connector`/`crossing` points. Real valves are 26 px vs
+  54 / 83 px synthetic, but 0.88 % vs 0.76 % / 1.16 % of image width: the real images are
+  smaller, not the symbols relatively. `inlet/outlet` exists only in the 12 real drawings.
+- **Dataset-P&ID:** nothing missing; 4 of 7 array types need pickle; `SCALE` is the text
+  `"None"` in 266 of 500 title blocks.
+
+**Problems & fixes:**
+1. **No `/usr/bin/time` in the container.** Peak memory is measured with Python's
+   `resource.getrusage(RUSAGE_CHILDREN).ru_maxrss` around the `nbconvert` run (it includes the
+   kernel process). Recorded in `tasks.md`.
+2. **`is_final` marks only 37 periods** (those named "Actual Schedule"), so "final CPI" uses each
+   project's last period instead; the notebook shows why (EV ≥ 99 % of BAC in 115 of 117).
+3. **A misleading first finding:** the overall median symbol box was 8 px because line points
+   (`connector`, `crossing`) dominate. Fixed by comparing per label (valves) and as a share of
+   the image width.
+4. **"AC > BAC" counted rounding:** the sample project has EV = 180,485.27 against BAC
+   180,485.00. Now AC > 1.01 × BAC (66 projects).
+5. **Privacy:** the Ghent sample row showed `submitted_by` (a person's name); the column is left
+   out of the sample.
+6. **Review (3 subagents):** security found nothing significant. Bugs: a truncated JPEG raised
+   `struct.error` and a blank GraphML value crashed `float("")`; both fixed with tests. Accuracy:
+   every key number was re-computed independently and matched; fixed findings that quoted
+   numbers only visible in charts, added the catalog's caveat and publish-date range to the UFGS
+   header, the extra Ghent citations, and the `SCALE = "None"` placeholder count.
+7. **Open:** `DATA_CATALOG.md` says a real valve is "about 20 px"; the measured median longer
+   side is 26 px. Left for a catalog update (outside this spec).
+
+**Learn:** LEARNING_GUIDE 1.7 (headless notebooks), 1.13 (read headers, not whole files),
+1.14 (matplotlib), 3.8 (PyMuPDF), 2.2 (why SPI ends at 1).
 
 ---
 
