@@ -13,7 +13,8 @@
       processes via `resource.getrusage`, because the container has no `/usr/bin/time`)
 - [x] 6. Notebook `00_profile_ufgs.ipynb`; run headless; record the same
       → exit 0, 43 s, peak 171 MB, 63,002 bytes (2026-10-17)
-- [ ] 7. Notebook `00_profile_dataset_pid.ipynb`; run headless; record the same
+- [x] 7. Notebook `00_profile_dataset_pid.ipynb`; run headless; record the same
+      → exit 0, 32 s, peak 168 MB, 60,729 bytes (2026-10-17)
 - [ ] 8. Notebook `00_profile_pid2graph.ipynb`; run headless; record the same
 - [ ] 9. Check the notebook totals against `DATA_CATALOG.md` / `checksums.json`
 - [ ] 10. `uv run ruff check .`, `uv run ruff format .`, `uv run pytest` (coverage ≥ 70 %)
