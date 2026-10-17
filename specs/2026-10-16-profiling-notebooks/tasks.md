@@ -7,8 +7,10 @@
       and JPEG headers, a small `.graphml`, a `.npy` with and without pickle, a DataFrame with
       gaps). Run it: it must fail (module does not exist yet)
 - [x] 4. Implement `src/datasets/profiling.py`; tests pass
-- [ ] 5. Notebook `00_profile_ghent.ipynb` (smallest data, reuses `load_ghent()`); run headless;
+- [x] 5. Notebook `00_profile_ghent.ipynb` (smallest data, reuses `load_ghent()`); run headless;
       record run time, peak memory, file size
+      → exit 0, 21 s, peak 209 MB, 93,620 bytes (2026-10-17; peak = max RSS of the child
+      processes via `resource.getrusage`, because the container has no `/usr/bin/time`)
 - [ ] 6. Notebook `00_profile_ufgs.ipynb`; run headless; record the same
 - [ ] 7. Notebook `00_profile_dataset_pid.ipynb`; run headless; record the same
 - [ ] 8. Notebook `00_profile_pid2graph.ipynb`; run headless; record the same
