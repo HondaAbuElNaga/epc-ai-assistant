@@ -3,10 +3,10 @@
 - [x] 1. Owner approves `spec.md` and answers the open questions; status → `approved`
 - [x] 2. If approved: `uv add matplotlib` / `uv add pymupdf`; update `product/tech-stack.md`
       (status ✅, reason, license); commit `pyproject.toml` + `uv.lock` together
-- [ ] 3. Write `tests/test_profiling.py` on fake data (tiny PDF made with PyMuPDF in the test, PNG
+- [x] 3. Write `tests/test_profiling.py` on fake data (tiny PDF made with PyMuPDF in the test, PNG
       and JPEG headers, a small `.graphml`, a `.npy` with and without pickle, a DataFrame with
       gaps). Run it: it must fail (module does not exist yet)
-- [ ] 4. Implement `src/datasets/profiling.py`; tests pass
+- [x] 4. Implement `src/datasets/profiling.py`; tests pass
 - [ ] 5. Notebook `00_profile_ghent.ipynb` (smallest data, reuses `load_ghent()`); run headless;
       record run time, peak memory, file size
 - [ ] 6. Notebook `00_profile_ufgs.ipynb`; run headless; record the same
