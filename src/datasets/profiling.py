@@ -32,7 +32,7 @@ BOX = ["xmin", "ymin", "xmax", "ymax"]
 def missing_table(df: pd.DataFrame) -> pd.DataFrame:
     """Missing count and percent per column, in the DataFrame's column order."""
     missing = df.isna().sum()
-    pct = (missing / len(df) * 100).round(1) if len(df) else missing * 0.0
+    pct = (missing / len(df) * 100).round(2) if len(df) else missing * 0.0
     return pd.DataFrame(
         {"column": df.columns, "missing": missing.to_numpy(), "missing_pct": pct.to_numpy()}
     )
@@ -73,6 +73,13 @@ def first_lines(path: Path, n: int = 5) -> list[str]:
 # --- images ---------------------------------------------------------------------------------
 
 
+def _read(f, n: int) -> bytes:
+    data = f.read(n)
+    if len(data) < n:
+        raise ValueError("JPEG is cut off (truncated file)")
+    return data
+
+
 def _jpeg_size(f) -> tuple[int, int]:
     f.seek(2)  # after the start-of-image marker FF D8
     while True:
@@ -91,9 +98,9 @@ def _jpeg_size(f) -> tuple[int, int]:
             raise ValueError("JPEG has no size (no start-of-frame marker)")
         if code in (0x01, *range(0xD0, 0xD9)):  # markers without a length
             continue
-        (length,) = struct.unpack(">H", f.read(2))
+        (length,) = struct.unpack(">H", _read(f, 2))
         if code in JPEG_SOF:
-            _precision, height, width = struct.unpack(">BHH", f.read(5))
+            _precision, height, width = struct.unpack(">BHH", _read(f, 5))
             return width, height
         f.seek(length - 2, 1)
 
@@ -135,7 +142,7 @@ def read_graphml(path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     nodes, edges = [], []
     for node in root.iter(f"{GRAPHML_NS}node"):
         data = values(node)
-        box = {k: float(data[k]) if data.get(k) is not None else None for k in BOX}
+        box = {k: float(data[k]) if (data.get(k) or "").strip() else None for k in BOX}
         nodes.append({"id": node.get("id"), "label": data.get("label"), **box})
     for edge in root.iter(f"{GRAPHML_NS}edge"):
         label = values(edge).get("edge_label")

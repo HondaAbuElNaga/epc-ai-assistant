@@ -112,6 +112,13 @@ def test_image_size_rejects_jpeg_without_size_marker(tmp_path):
         profiling.image_size(path)
 
 
+def test_image_size_rejects_truncated_jpeg(tmp_path):
+    path = tmp_path / "cut.jpg"
+    path.write_bytes(b"\xff\xd8\xff\xe0\x00")  # an APP0 marker, then the file ends
+    with pytest.raises(ValueError, match="cut off"):
+        profiling.image_size(path)
+
+
 def test_image_sizes_one_row_per_image(tmp_path):
     matplotlib.image.imsave(tmp_path / "1.png", np.zeros((10, 20, 3), dtype=np.uint8))
     matplotlib.image.imsave(tmp_path / "2.jpg", np.zeros((40, 30, 3), dtype=np.uint8))
@@ -172,6 +179,13 @@ def test_read_graphml_nodes_with_box_and_label(graphml):
     assert nodes.loc[0, ["xmin", "ymin", "xmax", "ymax"]].tolist() == [10.5, 100.0, 30.5, 140.0]
     assert nodes.loc[1, ["xmin", "ymin", "xmax", "ymax"]].tolist() == [0.0, 0.0, 50.0, 25.0]
     assert pd.isna(nodes.loc[2, "label"]) and pd.isna(nodes.loc[2, "xmin"])
+
+
+def test_read_graphml_blank_box_value_counts_as_missing(tmp_path):
+    path = tmp_path / "blank.graphml"
+    path.write_text(GRAPHML.replace('<data key="d1">10.5</data>', '<data key="d1"> </data>'))
+    nodes, _ = profiling.read_graphml(path)
+    assert pd.isna(nodes.loc[0, "xmin"]) and nodes.loc[0, "xmax"] == 30.5
 
 
 def test_read_graphml_edges_with_label(graphml):
