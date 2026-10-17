@@ -84,17 +84,17 @@ size for P&IDs), and they are a visible part of the portfolio on GitHub.
   (4), `pyproject.toml` + `uv.lock` (if new libraries are approved), `product/tech-stack.md`.
 
 ## Acceptance criteria
-- [ ] 4 notebooks exist and each runs headless with exit code 0 (command of Requirement 2).
-- [ ] Each notebook has the 5 parts: counts, missing values, distributions, sample records,
+- [x] 4 notebooks exist and each runs headless with exit code 0 (command of Requirement 2).
+- [x] Each notebook has the 5 parts: counts, missing values, distributions, sample records,
       findings; and the source/license header.
-- [ ] Totals in the notebooks agree with `DATA_CATALOG.md` / `checksums.json` (UFGS 271 PDFs;
+- [x] Totals in the notebooks agree with `DATA_CATALOG.md` / `checksums.json` (UFGS 271 PDFs;
       Ghent 231 projects, groups 117/41/73; PID2Graph 512 + 250 drawings; Dataset-P&ID 500
       folders × 7 `.npy`, 500 images, 500 masks). Any difference is explained in the notebook.
-- [ ] Peak memory per notebook run < 2 GB (measured, reported in `tasks.md`).
-- [ ] Each `.ipynb` < 1 MB.
-- [ ] `tests/test_profiling.py` passes offline; `ruff check` (incl. notebooks), `ruff format`,
+- [x] Peak memory per notebook run < 2 GB (measured, reported in `tasks.md`).
+- [x] Each `.ipynb` < 1 MB.
+- [x] `tests/test_profiling.py` passes offline; `ruff check` (incl. notebooks), `ruff format`,
       `pytest` clean; coverage ≥ 70 %.
-- [ ] Tech stack updated for any library brought forward (status, reason, license).
+- [x] Tech stack updated for any library brought forward (status, reason, license).
 
 ## Technical approach
 - **Profile functions** (in `src/datasets/profiling.py`, all returning pandas DataFrames):

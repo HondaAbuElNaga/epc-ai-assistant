@@ -21,8 +21,9 @@
       → all agree: UFGS 271 PDFs / 37,587,638 B; Ghent 231 projects, 117/41/73; PID2Graph
       12 + 250 + 500 graphs with as many images (the criterion's "512 + 250" = 12 real + 500
       Dataset PID, + 250 synthetic); Dataset-P&ID 500 folders, 3,500 `.npy`, 500 images, 500 masks
-- [ ] 10. `uv run ruff check .`, `uv run ruff format .`, `uv run pytest` (coverage ≥ 70 %)
-- [ ] 11. Verify every acceptance criterion against real output
+- [x] 10. `uv run ruff check .`, `uv run ruff format .`, `uv run pytest` (coverage ≥ 70 %)
+      → ruff clean (incl. notebooks); 161 passed, 2 deselected; coverage 89.37 % (profiling.py 92 %)
+- [x] 11. Verify every acceptance criterion against real output (all met, see spec)
 - [ ] 12. Review with 3 subagents (bugs, security, accuracy); fix confirmed findings
 - [ ] 13. Docs: DEVLOG step 20, LEARNING_GUIDE (1.7 Jupyter: headless runs; matplotlib and
       PyMuPDF basics if added), PROJECT_PLAN checklist, roadmap tick + "Current position";
