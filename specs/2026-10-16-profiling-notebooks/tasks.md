@@ -11,7 +11,8 @@
       record run time, peak memory, file size
       → exit 0, 21 s, peak 209 MB, 93,620 bytes (2026-10-17; peak = max RSS of the child
       processes via `resource.getrusage`, because the container has no `/usr/bin/time`)
-- [ ] 6. Notebook `00_profile_ufgs.ipynb`; run headless; record the same
+- [x] 6. Notebook `00_profile_ufgs.ipynb`; run headless; record the same
+      → exit 0, 43 s, peak 171 MB, 63,002 bytes (2026-10-17)
 - [ ] 7. Notebook `00_profile_dataset_pid.ipynb`; run headless; record the same
 - [ ] 8. Notebook `00_profile_pid2graph.ipynb`; run headless; record the same
 - [ ] 9. Check the notebook totals against `DATA_CATALOG.md` / `checksums.json`
