@@ -1,7 +1,8 @@
 # Spec: Profiling notebooks (one per dataset)
 
 **Roadmap item:** Phase 2, "Profiling notebook per dataset"
-**Status:** draft (2026-10-16), waiting for the owner's approval
+**Status:** approved (2026-10-17) with the owner's answers below; building on branch
+`spec/2026-10-16-profiling-notebooks`
 **Branch:** `spec/2026-10-16-profiling-notebooks`
 **Related:** PROJECT_PLAN Stage 2, process step 5: "a profiling notebook per dataset
 (`notebooks/00_profile_<dataset>.ipynb`) covering counts, missing values, distributions and sample
@@ -116,7 +117,13 @@ size for P&IDs), and they are a visible part of the portfolio on GitHub.
   - Notebook outputs make noisy git diffs. Mitigation: re-run a notebook only when its data or
     code changes.
 
-## Open questions (for the owner)
+## Owner's answers (2026-10-16)
+1. Charts: **add matplotlib now**.
+2. UFGS: **add PyMuPDF now** (page and text counts, pages without text).
+3. Samples: **text only**, with the source named; no drawing images.
+4. Notebooks committed **with their results**.
+
+## Open questions (as asked)
 1. **Charts:** bring **matplotlib** forward from Stage 5 now (`uv add matplotlib`)?
    **Recommended: yes.** "Distributions" without charts means long tables. The alternative is
    tables only (pandas `describe()`, value counts).
