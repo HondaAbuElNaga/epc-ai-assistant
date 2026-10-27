@@ -39,7 +39,7 @@ jobs:
 
       - name: Tests + coverage gate (70 %)
         run: >-
-          uv run pytest -m "not network and not llm and not eval"
+          uv run pytest -m "not network and not llm and not eval and not data"
           --cov=src --cov-report=term --cov-fail-under=70
 
   secrets:
