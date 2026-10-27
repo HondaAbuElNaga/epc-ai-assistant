@@ -16,7 +16,7 @@
 - [x] 9. Docs: DEVLOG step 21, LEARNING_GUIDE (pytest markers / data tests, if missing),
       PROJECT_PLAN Stage 2 ticks ("Integrity tests pass"), roadmap tick + "Current position";
       spec status → `done`
-- [ ] 10. Commit, push the branch, open a pull request into `main`; CI green
+- [x] 10. Commit, push the branch, open a pull request into `main`; CI green (PR #8; CI tests + secrets passed 2026-10-28)
 
 ## Results (2026-10-28, in the container)
 
