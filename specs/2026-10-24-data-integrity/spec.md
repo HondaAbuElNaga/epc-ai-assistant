@@ -1,7 +1,7 @@
 # Spec: Data integrity tests
 
 **Roadmap item:** Phase 2, "`tests/test_data_integrity.py`"
-**Status:** draft
+**Status:** approved (2026-10-28, all recommended answers below)
 **Branch:** `spec/2026-10-24-data-integrity`
 **Related:** PROJECT_PLAN Stage 2, "Testing" (4 checks listed there); `data/DATA_CATALOG.md`;
 `data/checksums.json`; specs `2026-10-16-data-catalog` and `2026-10-16-profiling-notebooks`
@@ -110,7 +110,13 @@ They are not committed as tests.
   of memory when heavy jobs ran in parallel. Rule: run `-m data` alone, not next to another
   heavy job.
 
-## Open questions (owner decides)
+## Owner's answers (2026-10-28)
+The owner chose the recommended answer for every question.
+1. Checksums: **sizes only** (`quick=True`); full SHA-256 stays the separate `--verify` command.
+2. **Exact numbers** (231 / 117 / 41 / 73, 271 PDFs, file counts from `checksums.json`).
+3. BAC: **required for group A only**; the 31 known gaps in group C are allowed.
+
+## Open questions (as asked)
 1. **Checksum depth in the tests.**
    - a) sizes only (`quick=True`, seconds); the full SHA-256 stays the existing command
      `python -m src.datasets.checksums --verify` (3 min 17 s), run after a re-download.

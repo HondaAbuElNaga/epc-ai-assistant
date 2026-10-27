@@ -1,6 +1,6 @@
 # Tasks: Data integrity tests
 
-- [ ] 1. Owner approves `spec.md` and answers the open questions; status → `approved`
+- [x] 1. Owner approves `spec.md` and answers the open questions; status → `approved` (2026-10-28: all recommended answers)
 - [ ] 2. `pyproject.toml`: add the `data` marker, change `addopts` to
       `-m 'not network and not data'`; CI command gets `and not data`. Run `uv run pytest`:
       same passed count as `main`
