@@ -1260,9 +1260,23 @@ def test_cpi(ev, ac, expected):
     assert cpi(ev, ac) == pytest.approx(expected)
 ```
 
-**Run:** `docker compose exec dev uv run pytest -v`
+**Opt-in markers and data tests** (`tests/test_data_integrity.py`):
+- A **marker** is a label on a test: `pytestmark = pytest.mark.data` labels every test in a file.
+  Register it under `markers` in `pyproject.toml`, or pytest warns about an unknown marker.
+- `addopts = "-m 'not network and not data'"` leaves those tests out of a plain `pytest`;
+  `pytest -m data` runs only them. A `-m` on the command line **replaces** the one in `addopts`,
+  so a CI command with its own `-m` must exclude `data` itself.
+- **Data tests** check real files, not code. They need the data, so they run locally only. A
+  missing dataset must **fail**, not `skip`: a quiet skip looks like a pass.
+- **Module-scoped fixture** (`@pytest.fixture(scope="module")`): the slow setup (loading Ghent,
+  walking 7,000 files) runs once for the whole file, not once per test.
+- **Fault check:** break the input on purpose (a changed size, a wrong expected number, a missing
+  folder) and see the test fail. It proves the test can catch the problem.
 
-**Study:** https://docs.pytest.org/en/stable/getting-started.html
+**Run:** `docker compose exec dev uv run pytest -v` (data tests: `uv run pytest -m data`)
+
+**Study:** https://docs.pytest.org/en/stable/getting-started.html,
+https://docs.pytest.org/en/stable/example/markers.html
 
 ---
 
