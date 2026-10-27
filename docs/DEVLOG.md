@@ -32,6 +32,7 @@ New steps are added at the bottom. Technologies mentioned here are explained in
 | 18 | 2026-10-16 | Stage 2 | P&ID datasets: PID2Graph + Dataset-P&ID download and inspection |
 | 19 | 2026-10-16 | Stage 2 | Data catalog + checksums of every raw file (6,995 files) |
 | 20 | 2026-10-17 | Stage 2 | Profiling notebooks, one per dataset (counts, gaps, charts, findings) |
+| 21 | 2026-10-28 | Stage 2 | Data integrity tests: 13 tests on the real data, `data` marker (local only) |
 
 ---
 
@@ -1032,6 +1033,76 @@ forecast, how to tile drawings).
 
 **Learn:** LEARNING_GUIDE 1.7 (headless notebooks), 1.13 (read headers, not whole files),
 1.14 (matplotlib), 3.8 (PyMuPDF), 2.2 (why SPI ends at 1).
+
+## Step 21: Data integrity tests (`tests/test_data_integrity.py`)
+
+**What:** 13 tests that check the real data on this machine is the data the project was built
+on (spec `2026-10-24-data-integrity`, approved 2026-10-28 with all recommended answers):
+- **Folders + file counts** (4 tests, one per dataset): the folder exists and holds the count
+  recorded in `data/checksums.json`.
+- **Sizes** (4 tests): `checksums.verify(quick=True)` finds 0 missing and 0 changed files.
+- **UFGS:** 271 PDFs in the 12 divisions, every one opens, has pages, and no page is without
+  text. A failure lists every bad file.
+- **Ghent** (4 tests, data loaded once): 231 projects, groups A 117 / B 41 / C 73; every project
+  has activities; every group A project has tracking periods; BAC > 0 where present and present
+  for all of group A.
+- A new pytest marker **`data`**: left out of `uv run pytest` and of CI (CI has no data).
+
+**Why:** Modules A–D and their evaluation scores depend on this data. A missing, broken or
+silently changed file must fail a test, not show up later as a strange result. This closes the
+last required Phase 2 item.
+
+**How:**
+```bash
+docker compose exec dev uv run pytest -m data        # run alone, not next to a heavy job
+# full SHA-256 check (slower, after a re-download):
+docker compose exec dev uv run python -m src.datasets.checksums --verify
+```
+- `pytestmark = [pytest.mark.data, ...]` marks every test in the file.
+- `addopts = "-m 'not network and not data'"`; the CI command got `and not data` too, because
+  a `-m` on the command line **replaces** the one in `addopts`.
+- Overrides `EPC_RAW_DIR` / `EPC_CHECKSUMS` point the tests at another folder or checksum file
+  (used for the fault checks).
+- Missing data **fails**, never skips: a missing folder is exactly what the tests are for.
+
+**Files:**
+
+| File | Change |
+|---|---|
+| `tests/test_data_integrity.py` | New: 13 data tests |
+| `pyproject.toml` | `data` marker; `addopts` excludes it |
+| `.github/workflows/ci.yml` | pytest `-m` expression gets `and not data` |
+| `specs/2026-10-24-data-integrity/` | `spec.md` (owner's answers), `tasks.md` (run numbers, fault checks) |
+| `docs/LEARNING_GUIDE.md` | 8.1: opt-in markers and data tests |
+| `PROJECT_PLAN.md`, `product/roadmap.md` | Stage 2 / Phase 2 ticked |
+
+**Verify (real results, 2026-10-28):**
+- `pytest -m data`: **13 passed**, 2 min 43 s / 1 min 29 s / 1 min 26 s (pytest time; the disk
+  cache makes it vary). Spec limit: 3 min.
+- CI command: 162 passed, 16 deselected (3 before + 13), coverage 88.84 % (before: 162 passed,
+  3 deselected, 89 %).
+- Fault checks (all undone): a size changed in a copy of `checksums.json` → `ufgs: size
+  changed: ['ufgs/01/UFGS_01_11_00.pdf']`; expected projects 232 → `assert 231 == 232`; a data
+  root that does not exist → 9 failed, 4 errors, **0 skipped**.
+- `ruff check` and `ruff format --check` clean.
+
+**Problems & fixes:**
+1. **First run took 4 min 43 s.** Each `checksums.verify` walks all ~7,000 files of `data/raw/`
+   (slow through the Windows → container file share), and the tests called it 8 times. Fix: one
+   module-scoped `verify` for all datasets, split per dataset with `dataset_of`.
+2. **Wall clock ≠ pytest time:** one run took over 10 minutes in total while pytest reported
+   1 min 29 s; the PC had about 2.6 GB of 16 GB RAM free. Cause not verified.
+3. **The plan's rule didn't fit the data:** "each project has a baseline plus at least one
+   tracking period" is false; only group A (117) has tracking. The test checks group A.
+4. **Review (3 subagents):** security found nothing above Info (note: the CI `-m` repeats
+   `addopts`, so a future opt-in marker must be added in both places). Bugs: an *empty*
+   `EPC_RAW_DIR` became the current folder; fixed with `or`. A count test can't see a rename
+   (1 missing + 1 new); the size test catches it, now said in a comment. BAC missing in group B
+   would pass: that follows the approved answer (BAC required for group A only), left as is.
+   Accuracy: every number matched the catalog; a "~30 s" comment corrected to the measured
+   39–72 s.
+
+**Learn:** LEARNING_GUIDE 8.1 (opt-in markers, data tests that fail instead of skip).
 
 ---
 

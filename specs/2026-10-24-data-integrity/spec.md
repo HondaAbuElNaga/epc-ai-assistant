@@ -1,7 +1,8 @@
 # Spec: Data integrity tests
 
 **Roadmap item:** Phase 2, "`tests/test_data_integrity.py`"
-**Status:** approved (2026-10-28, all recommended answers below)
+**Status:** done (2026-10-28). Approved 2026-10-28 with all recommended answers below; built on
+this branch; review (3 subagents) fixes in `tasks.md` task 8
 **Branch:** `spec/2026-10-24-data-integrity`
 **Related:** PROJECT_PLAN Stage 2, "Testing" (4 checks listed there); `data/DATA_CATALOG.md`;
 `data/checksums.json`; specs `2026-10-16-data-catalog` and `2026-10-16-profiling-notebooks`

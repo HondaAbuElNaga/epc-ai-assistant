@@ -23,8 +23,9 @@ pytestmark = [
     pytest.mark.filterwarnings("ignore:Unknown extension is not supported:UserWarning"),
 ]
 
-RAW_DIR = Path(os.getenv("EPC_RAW_DIR", checksums.RAW_DIR))
-CHECKSUMS = Path(os.getenv("EPC_CHECKSUMS", checksums.OUT_FILE))
+# `or`: an empty variable means "not set" (Path("") would be the current folder)
+RAW_DIR = Path(os.getenv("EPC_RAW_DIR") or checksums.RAW_DIR)
+CHECKSUMS = Path(os.getenv("EPC_CHECKSUMS") or checksums.OUT_FILE)
 
 # Expected numbers from data/DATA_CATALOG.md (UFGS and Ghent sections); file counts per dataset
 # come from checksums.json. If the data is re-downloaded and these change, update the docs too.
@@ -41,7 +42,7 @@ def recorded() -> dict:
 
 @pytest.fixture(scope="module")
 def report() -> checksums.Report:
-    # One size-only verify for all datasets: walking data/raw/ is the slow part (~30 s)
+    # One size-only verify for all datasets: walking data/raw/ is the slow part (39-72 s measured)
     # Full SHA-256: python -m src.datasets.checksums --verify
     return checksums.verify(RAW_DIR, CHECKSUMS, quick=True)
 
@@ -63,6 +64,7 @@ def test_folder_has_recorded_file_count(dataset, recorded, report):
     folder = RAW_DIR / checksums.DATASETS[dataset]
     assert folder.is_dir(), f"{dataset}: folder {folder} not found"
     expected = recorded[dataset]["files"]
+    # A count can't see a rename (1 missing + 1 new); test_sizes_match_checksums catches that
     missing = len(_of(dataset, report.missing))
     on_disk = expected - missing + len(_of(dataset, report.new))
     assert on_disk == recorded[dataset]["files"], (

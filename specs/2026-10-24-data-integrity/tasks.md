@@ -12,8 +12,8 @@
       (`git diff` shows only the intended changes)
 - [x] 6. `uv run ruff check .`, `uv run ruff format .`, `uv run pytest` (coverage ≥ 70 %)
 - [x] 7. Verify every acceptance criterion against real output
-- [ ] 8. Review with 3 subagents (bugs, security, accuracy); fix confirmed findings
-- [ ] 9. Docs: DEVLOG step 21, LEARNING_GUIDE (pytest markers / data tests, if missing),
+- [x] 8. Review with 3 subagents (bugs, security, accuracy); fix confirmed findings
+- [x] 9. Docs: DEVLOG step 21, LEARNING_GUIDE (pytest markers / data tests, if missing),
       PROJECT_PLAN Stage 2 ticks ("Integrity tests pass"), roadmap tick + "Current position";
       spec status → `done`
 - [ ] 10. Commit, push the branch, open a pull request into `main`; CI green
@@ -47,3 +47,10 @@ passed (88.84 %).
 
 **Task 7.** Acceptance criteria: all met except "CI green", checked in task 10. Requirement 8
 (under 3 minutes): met on both runs of the final version (2:43, 1:29 pytest time).
+
+**Task 8. Review (3 subagents).** Security: nothing above Info (the CI `-m` repeats `addopts`;
+a future opt-in marker must go in both). Bugs: empty `EPC_RAW_DIR`/`EPC_CHECKSUMS` became the
+current folder → fixed with `or`; count test can't see a rename → comment added (the size test
+catches it); BAC missing in group B would pass → kept, it follows answer 3 / Requirement 6.
+Accuracy: all numbers match the catalog; "~30 s" comment → measured "39-72 s". After the fixes:
+`pytest -m data` 13 passed in 1 min 26 s; ruff clean.

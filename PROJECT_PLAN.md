@@ -243,13 +243,13 @@ Assumes 3–4 hours a day.
 - `tests/test_data_integrity.py`:
   - expected folders exist and are not empty
   - every PDF opens without error and has more than 0 pages with text
-  - the Ghent data loads, each project has a baseline plus at least one tracking period, and BAC (budget at completion) is greater than 0
+  - the Ghent data loads, each project has a baseline plus at least one tracking period, and BAC (budget at completion) is greater than 0 (real data: only group A, 117 projects, has tracking; the test checks group A, see DEVLOG step 21)
   - checksums are stored in `data/checksums.json` and match
 
 **Done when:**
 - [ ] All datasets are downloaded and listed in `DATA_CATALOG.md`
 - [x] A profiling notebook exists for each dataset (2026-10-17)
-- [ ] Integrity tests pass
+- [x] Integrity tests pass (2026-10-28: 13 passed, `uv run pytest -m data`)
 
 ---
 
@@ -725,7 +725,7 @@ one risk (data leaving to an API).
 - [ ] OSHA data downloaded
 - [x] `DATA_CATALOG.md` + `data/checksums.json` (2026-10-16: 4 datasets, 6,995 files, verify passed)
 - [x] Profiling notebooks (2026-10-17: 4 notebooks, run headless with outputs; `src/datasets/profiling.py`)
-- [ ] Data integrity tests
+- [x] Data integrity tests (2026-10-28: 13 tests, `data` marker, local only)
 
 **Stage 3: Module A (Spec RAG)**
 - [ ] Parser, chunker, indexer
